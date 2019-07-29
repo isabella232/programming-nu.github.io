@@ -1,0 +1,569 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Installing</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta content="37.444542, -122.161050" name="ICBM" />
+<link media="all" href="/stylesheets/nu.css" type ="text/css" rel="stylesheet" />
+</head>
+<body>
+<div id="container">
+<div id="header">
+<div style="float:left; margin-right:10px">
+<img src="/files/recycle-s.png" height="50" alt="recycling symbol" />
+</div>
+<div style="float:left">
+<h1><a href="/">Programming Nu</a></h1>
+<h3><a href="https://github.com/programming-nu">github.com/programming-nu</a></h3>
+</div>
+</div>
+
+
+<div id="content">
+<div class="atomentry">
+	
+
+
+<div class="content" style="margin-bottom:10px">
+<h1>Building and Installing Nu</h1>
+
+<p>Here is how you can build and install Nu from the source distribution.<br/>By default, Nu requires Mac OS 10.5 or later, but with some effort, it is also possible to build Nu on 10.4 and other systems.</p> 
+</div>
+
+
+<div class="extended">
+<h2>Build the prerequisites</h2>
+
+<p><strong>1.</strong>
+Nu requires <strong>PCRE</strong>, the Perl-Compatible Regular Expression Library.
+Before building Nu, download and install <strong>PCRE</strong>, enabling UTF-8.
+Look for it at <a href="http://www.pcre.org">www.pcre.org</a>. <br />
+To build a universal binary with UTF-8 support, use the following command:</p>
+
+<pre>
+% env CXXFLAGS="-arch i386 -arch ppc" \
+      CFLAGS="-arch i386 -arch ppc" \
+      LDFLAGS="-arch i386 -arch ppc" \
+      ./configure --disable-dependency-tracking --enable-utf8
+</pre>
+
+<p>Don't forget to build <strong>PCRE</strong> with UTF-8 support.  That's essential. <br />
+Subsequent build steps will fail if you don't do this.  </p>
+
+<p>If you are using a 10.4 PowerPC system to build universal binaries,
+you will also need to add the following flags to CXXFLAGS, CFLAGS, and LDFLAGS:</p>
+
+<pre>
+"-isysroot /Developer/SDKs/MacOSX10.4u.sdk"
+</pre>
+
+<p>When you install <strong>PCRE</strong>, it's best to put it in /usr/local (the default).
+If you put it anywhere else, you'll have to modify the Rakefile and Nukefile used to build Nu.</p>
+
+<p><strong>2.</strong>
+<strong>Important: Leopard (10.5) users should skip this step.</strong>
+Nu requires <strong>libffi</strong>.
+On Mac OS 10.5, libffi is included as a shared library, so 10.5 users should skip this step.  But on Mac OS 10.4 and other systems, you may need to build your own libffi library.  A version has been provided in the libffi directory.  To build it, use the Ruby <strong>rake</strong> build tool and the included Rakefile.</p>
+
+<pre>
+% cd libffi; rake; cd ..
+</pre>
+
+<p>If you don't have <strong>rake</strong> on your system, get it with <nobr><code>gem install rake</code></nobr> or download it from <a href="http://rake.rubyforge.org">rake.rubyforge.org</a>.</p>
+
+<p>Also, you may see some warning messages from libtool when you build libffi.  It seems that they can be safely ignored.  Here's what I see when I build libffi on my development systems:</p>
+
+<pre>
+[neon:~/Desktop/Nu/libffi] tim% rake
+(in /Volumes/Neon/Users/tim/Desktop/Nu/libffi)
+gcc -g -O3 -Wall -DMACOSX -Iinclude -I. -Isrc -arch i386 -arch ppc  -c -o src/types.o src/types.c
+/opt/local/lib/ruby/gems/1.8/gems/rake-0.7.1/lib/rake.rb:728: warning: Insecure world writable dir /Volumes, mode 041777
+gcc -g -O3 -Wall -DMACOSX -Iinclude -I. -Isrc -arch i386 -arch ppc  -c -o src/prep_cif.o src/prep_cif.c
+gcc -g -O3 -Wall -DMACOSX -Iinclude -I. -Isrc -arch i386 -arch ppc  -c -o src/x86/ffi_darwin.o src/x86/ffi_darwin.c
+gcc -g -O3 -Wall -DMACOSX -Iinclude -I. -Isrc -arch i386 -arch ppc  -c -o src/x86/darwin.o src/x86/darwin.S
+gcc -g -O3 -Wall -DMACOSX -Iinclude -I. -Isrc -arch i386 -arch ppc  -c -o src/powerpc/ffi_darwin.o src/powerpc/ffi_darwin.c
+gcc -g -O3 -Wall -DMACOSX -Iinclude -I. -Isrc -arch i386 -arch ppc  -c -o src/powerpc/darwin.o src/powerpc/darwin.S
+gcc -g -O3 -Wall -DMACOSX -Iinclude -I. -Isrc -arch i386 -arch ppc  -c -o src/powerpc/darwin_closure.o src/powerpc/darwin_closure.S
+libtool -static -o libffi.a src/types.o src/prep_cif.o src/x86/ffi_darwin.o src/x86/darwin.o src/powerpc/ffi_darwin.o src/powerpc/darwin.o src/powerpc/darwin_closure.o
+libtool: warning for architecture: i386 same member name (darwin.o) in output file used for input files: src/x86/darwin.o and: src/powerpc/darwin.o (due to use of basename, truncation, blank padding or duplicate input files)
+libtool: warning for architecture: i386 same member name (ffi_darwin.o) in output file used for input files: src/x86/ffi_darwin.o and: src/powerpc/ffi_darwin.o (due to use of basename, truncation, blank padding or duplicate input files)
+libtool: warning for architecture: ppc same member name (darwin.o) in output file used for input files: src/x86/darwin.o and: src/powerpc/darwin.o (due to use of basename, truncation, blank padding or duplicate input files)
+libtool: warning for architecture: ppc same member name (ffi_darwin.o) in output file used for input files: src/x86/ffi_darwin.o and: src/powerpc/ffi_darwin.o (due to use of basename, truncation, blank padding or duplicate input files)
+ranlib libffi.a
+</pre>
+
+<h2>Build Nu</h2>
+
+<p><strong>3.</strong>
+Use <strong>make</strong> to build 
+<strong>mininush</strong>, a minimal version of the Nu shell.</p>
+
+<pre>
+% make
+</pre>
+
+<p><strong>4.</strong>
+Now use <strong>mininush</strong> to run nuke to complete the Nu build process.
+This builds <strong>Nu.framework</strong>, the Nu framework, 
+and <strong>nush</strong>, the Nu shell.</p>
+
+<pre> 
+% ./mininush tools/nuke
+</pre>
+
+<h2>Install and Test Nu</h2>
+
+<p><strong>5.</strong>
+Use <strong>mininush</strong> again to install 
+<strong>Nu.framework</strong>, 
+<strong>nush</strong>, and the Nu tools.</p>
+
+<pre>
+% ./mininush tools/nuke install
+</pre>
+
+<p>Since the copying step uses <strong>sudo</strong>, you will be prompted for your password. <br />
+The framework goes in <strong>/Library/Frameworks</strong>, 
+executables go in <strong>/usr/local/bin</strong>, 
+and some support files go to <strong>/usr/local/share</strong>.</p>
+
+<p><strong>6.</strong>
+Test your installation with <code>nuke test</code>.  You should see results like these:</p>
+
+<pre>
+[neon:~/Desktop/Nu] tim% nuke test
+nuke: nutest test/test_*.nu
+
+TestArray: running
+--- testCreate
+TestArray: completed 1 tests/3 assertions/0 failures
+
+TestControl: running
+--- testCase
+--- testCond
+--- testFor
+--- testForBreak
+--- testForContinue
+--- testIf
+--- testLoopMacro
+--- testUnless
+--- testUntil
+--- testUntilBreak
+--- testUntilContinue
+--- testWhile
+--- testWhileBreak
+--- testWhileContinue
+TestControl: completed 14 tests/27 assertions/0 failures
+
+TestDictionary: running
+--- testCreate
+--- testSet
+TestDictionary: completed 2 tests/6 assertions/0 failures
+
+TestExceptions: running
+--- testRangeException
+--- testUserRaisedException
+--- testUserThrownException
+--- testUserThrownObject
+TestExceptions: completed 4 tests/16 assertions/0 failures
+
+TestMacros: running
+--- testBrokenFactorialMacro
+--- testFactorialFunction
+--- testFactorialMacro
+--- testGensymInterpolation
+--- testMacroImplementation
+TestMacros: completed 5 tests/5 assertions/0 failures
+
+TestMath: running
+--- testAbs
+--- testArithmeticOperators
+--- testBooleanOperators
+--- testComparisonOperators
+--- testCos
+--- testExp
+--- testIntegerDivide
+--- testIntegerMod
+--- testLog
+--- testShiftOperators
+--- testSin
+--- testSqrt
+--- testSquare
+TestMath: completed 13 tests/59 assertions/0 failures
+
+TestRegex: running
+--- testRegex
+--- testScrape
+TestRegex: completed 2 tests/3 assertions/0 failures
+
+TestSwizzling: running
+--- testClassMethodSwizzling
+--- testInstanceMethodSwizzling
+TestSwizzling: completed 2 tests/12 assertions/0 failures
+
+TestTemplates: running
+--- testCodeSubstitution
+--- testCountingSubstitution
+TestTemplates: completed 2 tests/2 assertions/0 failures
+
+All: completed 45 tests/133 assertions/0 failures
+
+SUCCESS (0 failures)
+</pre>
+
+<p>From now on, you can use the installed <strong>nush</strong> to run 
+<strong>nuke</strong>. To see for yourself, rebuild everything from scratch:</p>
+
+<pre>
+% nuke clobber
+% nuke
+% nuke install
+% nuke test
+</pre>
+
+<p>See the Nukefile for other useful tasks.</p>
+</div>
+
+
+</div> <!-- atomentry -->
+</div> <!-- content -->
+<div id="sidebar">
+
+<div class="sidebar-node">
+<h2><a href="/about">About Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="http://groups.google.com/group/programming-nu/topics">Google Group:<br/>Programming Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/downloads">Download Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2>Git Repositories</h2>
+<ul>
+<li><a href="http://github.com/programming-nu/nu">nu</a></li>
+<li><a href="http://github.com/programming-nu/programming-nu">programming-nu</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/documentation">Documentation</a></h2>
+<ul>
+<li><a href="/installing">Installing Nu</a></li>
+<li><a href="/usage">Using Nu</a></li>
+<li><a href="/embedding">Embedding Nu</a></li>
+<li><a href="/reference">Nu Reference</a></li>
+<li><a href="/syntax">- Syntax</a></li>
+<li><a href="/operators">- Operators</a></li>
+<li><a href="/types">- Types</a></li>
+<li><a href="/doc/index.html">- Class Reference</a></li>
+<li><a href="/help">Getting and Providing Help</a></li>
+<li><a href="/debugging">Debugging Nu Programs</a></li>
+<li><a href="/textmate">A Bundle for TextMate Users</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/examples">Examples</a></h2>
+<ul>
+<li><a href="/randomapp">RandomApp</a></li>
+<li><a href="/randomappwithnibfile">RandomAppWithNibFile</a></li>
+<li><a href="/currencyconverter">Currency Converter</a></li>
+<li><a href="/nurocks">NuRocks</a></li>
+<li><a href="/console">Console</a></li>
+<li><a href="/growler">Growler</a></li>
+<li><a href="/benwanu">Benwanu</a></li>
+<li><a href="/screensaver">Screen Saver</a></li>
+<li><a href="/maildemo">MailDemo</a></li>
+<li><a href="/nuanywhere">NuAnywhere</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/tools">Tools</a></h2>
+<ul>
+<li><a href="/nuke">nuke, a make utility</a></li>
+<li><a href="/nubile">nubile, a code formatter</a></li>
+<li><a href="/nutest">nutest, a testing tool</a></li>
+<li><a href="/nudoc">nudoc, a documentation generator</a></li>
+<li><a href="/nutemplate">nutemplate, a templating tool</a></li>
+<li><a href="/nubake">nubake, a code generation tool</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/">Archives</a></h2>
+<ul>
+
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">July 2019</li>
+
+<li>
+<a href="/posts/2019/07/25/programming-nu-on-github">
+Programming Nu on GitHub</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">April 2013</li>
+
+<li>
+<a href="/posts/2013/04/14/Nu-2.1.0">
+Nu-2.1.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">September 2011</li>
+
+<li>
+<a href="/posts/2011/09/02/Nu-2.0.1">
+Nu-2.0.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">August 2011</li>
+
+<li>
+<a href="/posts/2011/08/25/Nu-2.0.0">
+Nu-2.0.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2009</li>
+
+<li>
+<a href="/posts/2009/12/09/stability">
+Nu Seems Stable (by Jason Grossman)</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2009</li>
+
+<li>
+<a href="/posts/2009/11/22/vi">
+vi tips for Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2009/11/17/Nu-0.4.0">
+Nu-0.4.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">January 2009</li>
+
+<li>
+<a href="/posts/2009/01/02/macros">
+Macros</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2008</li>
+
+<li>
+<a href="/posts/2008/12/03/Nu-0.3.3">
+Nu-0.3.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">June 2008</li>
+
+<li>
+<a href="/posts/2008/06/08/Nu-0.3.2">
+Nu-0.3.2</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">May 2008</li>
+
+<li>
+<a href="/posts/2008/05/23/cocoa-programming-with-nu">
+Cocoa Programming with Nu</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">March 2008</li>
+
+<li>
+<a href="/posts/2008/03/24/Nu-0.3.1">
+Nu-0.3.1</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/21/announcing-nu">
+Announcing Nu: The Video</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/18/nu-on-github">
+Nu on github</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/14/new-platforms">
+Linux and the iPhone</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/12/new-license">
+Apache License, v. 2.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">February 2008</li>
+
+<li>
+<a href="/posts/2008/02/13/Nu-0.3.0">
+Nu-0.3.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2007</li>
+
+<li>
+<a href="/posts/2007/12/12/nupagepacker">
+NuPagePacker</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/12/Nu-0.2.4">
+Nu-0.2.4</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/07/Nu-0.2.3">
+Nu-0.2.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2007</li>
+
+<li>
+<a href="/posts/2007/11/26/Nu-0.2.2">
+Nu-0.2.2</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/25/a-delicious-nu-screencast">
+A Delicious Nu Screencast</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/12/Nu-0.2.1">
+Nu-0.2.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">October 2007</li>
+
+<li>
+<a href="/posts/2007/10/17/new-literal-forms-in-nu">
+New Literal Forms in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/escape-sequences-in-nu-strings">
+Escape Sequences in Nu Strings</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/closures-in-nu">
+Closures in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/Nu-0.2.0">
+Nu-0.2.0</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/11/screen-savers-and-plugins">
+Screen Savers and Plugins</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/10/markdown-in-nu">
+Markdown in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/05/functional-nu">
+Functional Aspects of Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/04/randomapp-with-nibfile">
+New Example: Nib Files</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/01/welcome">
+Welcome</a> 
+</li>                                        
+
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/legal">Legal Details</a></h2>
+</div>
+
+</div> <!-- sidebar -->
+
+
+
+</div><!-- container -->
+</body>	
+</html>

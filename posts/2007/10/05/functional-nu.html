@@ -1,0 +1,488 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Functional Aspects of Nu</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta content="37.444542, -122.161050" name="ICBM" />
+<link media="all" href="/stylesheets/nu.css" type ="text/css" rel="stylesheet" />
+</head>
+<body>
+<div id="container">
+<div id="header">
+<div style="float:left; margin-right:10px">
+<img src="/files/recycle-s.png" height="50" alt="recycling symbol" />
+</div>
+<div style="float:left">
+<h1><a href="/">Programming Nu</a></h1>
+<h3><a href="https://github.com/programming-nu">github.com/programming-nu</a></h3>
+</div>
+</div>
+
+
+<div id="content">
+<div class="atomentry">
+	
+
+<h2 class="title">
+<a href="/posts/2007/10/05/functional-nu">
+Functional Aspects of Nu</a> 
+</h2>
+<p class="author">
+Friday October 5, 2007 
+</p>
+
+
+<div class="content" style="margin-bottom:10px">
+<p>Two topics appeared on the mailing list that drew out some of the functional aspects of Nu.  I think they're worth discussing here.</p> 
+</div>
+
+
+<div class="extended">
+<h3>Currying</h3>
+
+<p><a href="http://en.wikipedia.org/wiki/Currying">Currying</a> is a common functional programming technique for converting a function of a list of parameters into a function of a shorter list of parameters.</p>
+
+<p>After a brief discussion of currying on the mailing list, the following example emerged to illustrate currying with Nu:</p>
+
+<pre>
+;; The curry function takes a function and a single argument 
+;; and returns a new function that is the original function with 
+;; its first parameter replaced by the specified argument.
+(function curry (f arg)
+    (set remaining-parameters ((send f parameters) cdr))
+    (eval (list 'do remaining-parameters 
+                 (append (list f arg) remaining-parameters))))
+
+;; This example function just returns the sum of three numbers
+(function add-triple (x y z) (+ x y z))
+(puts (add-triple 5 4 3))
+
+;; curry a 2-parameter function
+(set add5-to-pair (curry add-triple 5))
+(puts (add5-to-pair 4 3))
+
+;; curry a 1-parameter function
+(set add9-to-value (curry add5-to-pair 4))
+(puts (add9-to-value 3))
+
+;; curry a 0-parameter function
+(set twelve (curry add9-to-value 3))
+(puts (twelve))
+</pre>
+
+<p>Currently in Nu, this example only works for functions, because only functions are able to respond to the <a href="http://programming.nu/doc/classes/NuBlock.html#parameters"><code>parameters</code></a> message.</p>
+
+<p>Operators such as <code>+</code>, <code>-</code>, etc. must be handled differently because they accept a variable number of arguments and have no well-defined parameter list.  </p>
+
+<p>This also raises the issue that there is no way yet to define functions accepting a variable number of arguments in Nu, but I'll gladly adopt something from existing Lisp or Scheme conventions.</p>
+
+<h3>Variable Scope</h3>
+
+<p>The other discussion was on the subject of variable scope:</p>
+
+<pre>
+I've recently run into a problem with `do` blocks and I don't think
+that the behavior is correct.  The operators documentation says:
+"Most of the time, the evaluation of code in a block takes place in
+the context that was saved when the block was created."  If I have a
+variable outside of a `do` block that I try to set in the block, it
+isn't the set value in subsequent iterations or after the block
+exits.  I can use "$" to denote variables as global but I'd prefer
+objects to be limited to their scope.
+
+Sincerely,
+Grayson Hansard
+
+       (set x 0)
+       ('(1 2 3 4 5) each:(do (n) (set x (+ x n))))
+       (puts x) ; Outputs 0; Expected 15 (1+2+3+4+5).
+
+       (set l (NSMutableArray array))
+       ('(1 2 3 4 5) each:(do (n) (l addObject:n)))
+       (puts (l list)) ; Outputs "(1 2 3 4 5)";  Works as expected.
+</pre>
+
+<p>Grayson's observations about blocks were spot on (the documentation he quoted is <a href="http://localhost:3000/operators#functionsandmacros">here</a>). What he described is a result of Nu's block scoping rules.  In his example, <code>x</code> and <code>l</code> are
+names that are defined in a context that exists outside the block
+definitions.  When the blocks are created with <code>do</code>, these names and their assigned values are kept with the blocks for use when the blocks are evaluated.</p>
+
+<p>In the first case, the name <code>x</code> is given a new value inside the block. This new value assignment exists only in the context of the block and is not made in any outside context, so the value of <code>x</code> outside the block is unchanged, and the value for <code>x</code> for other evaluations of the block is also unchanged. It might not be obvious yet, but those other block evaluations may be occurring in parallel.</p>
+
+<p>In the second case, the value associated with the name <code>l</code> is unchanged inside the block.  Instead the block is making changes to an array object, and since there is only one array object, those changes are visible outside the block and in other evaluations of the block. Parallel evaluation of this block would be a problem.</p>
+
+<p>So while the behavior seems surprising at first, it's what
+I prefer for Nu.  It is conceptually  simpler and it makes it more
+feasible to write parallelizing methods such as this:</p>
+
+<pre>
+(arrayOfTasks eachInSeparateThread: (do (task) ... ))
+</pre>
+
+<p>But if you really must have the other behavior, there's a way to get it.  It's illustrated in the example below.  For
+more detail, please look at the class documentation for the
+<a href="http://programming.nu/doc/classes/NuReference.html">NuReference</a> class.</p>
+
+<pre>
+(set y ((NuReference alloc) init))
+(y setValue:0)
+('(1 2 3 4 5) each:(do (n) (y setValue:((+ (y value) n)))))
+(puts (y value))
+</pre>
+
+<p>As you'll see in the class documentation, this isn't the reason that I
+created the NuReference class, but as I heard Jim Coplien say at a C++ conference many years ago:</p>
+
+<blockquote>
+  <p>All interesting problems in computer science reduce to what's in a name, and can be solved by one more level of indirection.</p>
+</blockquote>
+
+<h3>Update</h3>
+
+<p>This question of variable scope is now resolved.  Enough people argued convincingly for the other interpretation that beginning in Nu-0.2.0, closures are now made on variable bindings rather than values.</p>
+
+<p>More details are in this post, titled <a href="http://programming.nu/posts/2007/10/17/closures-in-nu">Closures in Nu</a>.</p>
+</div>
+
+
+</div> <!-- atomentry -->
+</div> <!-- content -->
+<div id="sidebar">
+
+<div class="sidebar-node">
+<h2><a href="/about">About Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="http://groups.google.com/group/programming-nu/topics">Google Group:<br/>Programming Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/downloads">Download Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2>Git Repositories</h2>
+<ul>
+<li><a href="http://github.com/programming-nu/nu">nu</a></li>
+<li><a href="http://github.com/programming-nu/programming-nu">programming-nu</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/documentation">Documentation</a></h2>
+<ul>
+<li><a href="/installing">Installing Nu</a></li>
+<li><a href="/usage">Using Nu</a></li>
+<li><a href="/embedding">Embedding Nu</a></li>
+<li><a href="/reference">Nu Reference</a></li>
+<li><a href="/syntax">- Syntax</a></li>
+<li><a href="/operators">- Operators</a></li>
+<li><a href="/types">- Types</a></li>
+<li><a href="/doc/index.html">- Class Reference</a></li>
+<li><a href="/help">Getting and Providing Help</a></li>
+<li><a href="/debugging">Debugging Nu Programs</a></li>
+<li><a href="/textmate">A Bundle for TextMate Users</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/examples">Examples</a></h2>
+<ul>
+<li><a href="/randomapp">RandomApp</a></li>
+<li><a href="/randomappwithnibfile">RandomAppWithNibFile</a></li>
+<li><a href="/currencyconverter">Currency Converter</a></li>
+<li><a href="/nurocks">NuRocks</a></li>
+<li><a href="/console">Console</a></li>
+<li><a href="/growler">Growler</a></li>
+<li><a href="/benwanu">Benwanu</a></li>
+<li><a href="/screensaver">Screen Saver</a></li>
+<li><a href="/maildemo">MailDemo</a></li>
+<li><a href="/nuanywhere">NuAnywhere</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/tools">Tools</a></h2>
+<ul>
+<li><a href="/nuke">nuke, a make utility</a></li>
+<li><a href="/nubile">nubile, a code formatter</a></li>
+<li><a href="/nutest">nutest, a testing tool</a></li>
+<li><a href="/nudoc">nudoc, a documentation generator</a></li>
+<li><a href="/nutemplate">nutemplate, a templating tool</a></li>
+<li><a href="/nubake">nubake, a code generation tool</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/">Archives</a></h2>
+<ul>
+
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">July 2019</li>
+
+<li>
+<a href="/posts/2019/07/25/programming-nu-on-github">
+Programming Nu on GitHub</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">April 2013</li>
+
+<li>
+<a href="/posts/2013/04/14/Nu-2.1.0">
+Nu-2.1.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">September 2011</li>
+
+<li>
+<a href="/posts/2011/09/02/Nu-2.0.1">
+Nu-2.0.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">August 2011</li>
+
+<li>
+<a href="/posts/2011/08/25/Nu-2.0.0">
+Nu-2.0.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2009</li>
+
+<li>
+<a href="/posts/2009/12/09/stability">
+Nu Seems Stable (by Jason Grossman)</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2009</li>
+
+<li>
+<a href="/posts/2009/11/22/vi">
+vi tips for Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2009/11/17/Nu-0.4.0">
+Nu-0.4.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">January 2009</li>
+
+<li>
+<a href="/posts/2009/01/02/macros">
+Macros</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2008</li>
+
+<li>
+<a href="/posts/2008/12/03/Nu-0.3.3">
+Nu-0.3.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">June 2008</li>
+
+<li>
+<a href="/posts/2008/06/08/Nu-0.3.2">
+Nu-0.3.2</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">May 2008</li>
+
+<li>
+<a href="/posts/2008/05/23/cocoa-programming-with-nu">
+Cocoa Programming with Nu</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">March 2008</li>
+
+<li>
+<a href="/posts/2008/03/24/Nu-0.3.1">
+Nu-0.3.1</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/21/announcing-nu">
+Announcing Nu: The Video</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/18/nu-on-github">
+Nu on github</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/14/new-platforms">
+Linux and the iPhone</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/12/new-license">
+Apache License, v. 2.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">February 2008</li>
+
+<li>
+<a href="/posts/2008/02/13/Nu-0.3.0">
+Nu-0.3.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2007</li>
+
+<li>
+<a href="/posts/2007/12/12/nupagepacker">
+NuPagePacker</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/12/Nu-0.2.4">
+Nu-0.2.4</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/07/Nu-0.2.3">
+Nu-0.2.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2007</li>
+
+<li>
+<a href="/posts/2007/11/26/Nu-0.2.2">
+Nu-0.2.2</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/25/a-delicious-nu-screencast">
+A Delicious Nu Screencast</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/12/Nu-0.2.1">
+Nu-0.2.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">October 2007</li>
+
+<li>
+<a href="/posts/2007/10/17/new-literal-forms-in-nu">
+New Literal Forms in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/escape-sequences-in-nu-strings">
+Escape Sequences in Nu Strings</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/closures-in-nu">
+Closures in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/Nu-0.2.0">
+Nu-0.2.0</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/11/screen-savers-and-plugins">
+Screen Savers and Plugins</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/10/markdown-in-nu">
+Markdown in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/05/functional-nu">
+Functional Aspects of Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/04/randomapp-with-nibfile">
+New Example: Nib Files</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/01/welcome">
+Welcome</a> 
+</li>                                        
+
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/legal">Legal Details</a></h2>
+</div>
+
+</div> <!-- sidebar -->
+
+
+
+</div><!-- container -->
+</body>	
+</html>

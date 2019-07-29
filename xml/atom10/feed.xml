@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xml:lang="en-US" xmlns="http://www.w3.org/2005/Atom">
+  <title>Programming Nu</title>
+  <subtitle>The Nu Language Website</subtitle>
+  <id>tag:programming.nu,2007:Nu</id>
+  <generator uri="http://programming.nu" version="4.0">Nu</generator>
+  <link href="http://programming-nu.github.io/xml/atom10/feed.xml" rel="self" type="application/atom+xml"/>
+  <link href="http://programming-nu.github.io/" rel="alternate" type="text/html"/>
+  <updated>2019-07-25T17:08:00-07:00</updated>
+
+  <entry>
+
+    <id>programming-nu-on-github</id>
+    <published>2019-07-25T17:08:00-07:00</published>
+    <updated>2019-07-25T17:08:00-07:00</updated>
+    <title>Programming Nu on GitHub</title>	
+	<link href="http://programming-nu.github.io/posts/2019/07/25/programming-nu-on-github" rel="alternate" type="text/html"/>
+    <content type="xhtml">
+		<div xmlns="http://www.w3.org/1999/xhtml">
+        <p>Nu and related projects are 
+now in the <a href="https://github.com/programming-nu">programming-nu</a> organization
+on GitHub.</p>
+		</div>	
+	</content>
+  </entry>
+
+  <entry>
+
+    <id>Nu-2.1.0</id>
+    <published>2013-04-14T17:08:00-07:00</published>
+    <updated>2013-04-14T17:08:00-07:00</updated>
+    <title>Nu-2.1.0</title>	
+	<link href="http://programming-nu.github.io/posts/2013/04/14/Nu-2.1.0" rel="alternate" type="text/html"/>
+    <content type="xhtml">
+		<div xmlns="http://www.w3.org/1999/xhtml">
+        <p>Nu now includes built in operators for generating HTML and
+other XML-style markup.  </p>
+
+<p>For usage examples, see the test/test_markup.nu unit tests.</p>
+
+<p>As a simple example, this Nu code:</p>
+
+<pre><code>(puts (&amp;html (&amp;body (&amp;h1 "Hello!")
+                    (&amp;p "This is a test")
+                    (&amp;p "This is a second paragraph"))))
+</code></pre>
+
+<p>produces the following output:</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;This is a test&lt;/p&gt;&lt;p&gt;This is a second paragraph&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre>
+
+<p>You'll note that no line breaks or formatting is included. These can easily be added with xmllint:</p>
+
+<pre><code>%nush sample-markup.nu | xmllint --format -
+&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Hello!&lt;/h1&gt;
+    &lt;p&gt;This is a test&lt;/p&gt;
+    &lt;p&gt;This is a second paragraph&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>Also, the Nu source formatter (in beautify.nu) now produces prettier output.</p>
+
+<p>Download Nu <a href="/downloads">here</a>.</p>
+		</div>	
+	</content>
+  </entry>
+
+  <entry>
+
+    <id>Nu-2.0.1</id>
+    <published>2011-09-02T15:08:00-07:00</published>
+    <updated>2011-09-02T15:08:00-07:00</updated>
+    <title>Nu-2.0.1</title>	
+	<link href="http://programming-nu.github.io/posts/2011/09/02/Nu-2.0.1" rel="alternate" type="text/html"/>
+    <content type="xhtml">
+		<div xmlns="http://www.w3.org/1999/xhtml">
+        <p>This minor update contains better handling of classes whose init
+methods return something other than self, notably NSXMLDocument.
+It also changes loading of modules to use a single shared parser
+so that assignments made in a loaded file are available in the
+calling context (as they should have been).</p>
+
+<p>This build was made from the "amalgamated" branch. Soon this branch
+will become "master". As with 2.0, this version of Nu is
+exclusively for systems running Mac OS 10.7 or iOS 4.3 and 
+their successors. </p>
+		</div>	
+	</content>
+  </entry>
+
+  <entry>
+
+    <id>Nu-2.0.0</id>
+    <published>2011-08-25T09:08:00-07:00</published>
+    <updated>2011-08-25T09:08:00-07:00</updated>
+    <title>Nu-2.0.0</title>	
+	<link href="http://programming-nu.github.io/posts/2011/08/25/Nu-2.0.0" rel="alternate" type="text/html"/>
+    <content type="xhtml">
+		<div xmlns="http://www.w3.org/1999/xhtml">
+        <p>Nu 2.0 is now available through a binary installer. </p>
+
+<p>See the <a href="/downloads">downloads</a> page for this update to Nu.</p>
+
+<p>Nu 2.0 is a simpler, smaller version that uses new
+features in iOS 4.3 and Mac OS 10.7 to eliminate external dependencies
+and a few internal components.</p>
+
+<ul>
+<li>NSRegularExpression replaces PCRE.</li>
+<li>imp_implementationWithBlock() is used to generate method implementations.
+Previously we used libFFI for this on MacOS and a precompiled pool of
+method handlers on iOS. Now this pool is no longer needed.</li>
+<li>The NuSymbolTable is now just an NSMutableDictionary.</li>
+</ul>
+
+<p>To make it easier to add Nu as a drop-in component of iOS and Mac apps,
+the source code has been combined into two files, Nu.h and Nu.m. These
+are currently available in the "amalgamated" branch in the git repository,
+and will likely be the primary source for Nu going forward.</p>
+
+<p>Nu 2.0 is intended for systems running Mac OS 10.7 or iOS 4.3 and 
+their successors. For conciseness and simplicity, support for all 
+other platforms is dropped.</p>
+		</div>	
+	</content>
+  </entry>
+
+  <entry>
+
+    <id>stability</id>
+    <published>2009-12-09T00:07:00-07:00</published>
+    <updated>2009-12-09T00:07:00-07:00</updated>
+    <title>Nu Seems Stable (by Jason Grossman)</title>	
+	<link href="http://programming-nu.github.io/posts/2009/12/09/stability" rel="alternate" type="text/html"/>
+    <content type="xhtml">
+		<div xmlns="http://www.w3.org/1999/xhtml">
+        <p>I've been nagging Tim to say something about the stability of recent releases of Nu, so he asked me to write this.  </p>
+
+<p>Nu is a new language (no pun intended - see below for the etymology of the name Nu).  It hasn't yet formed the basis of an impressive suite of stable software, and you'd think hard before using it to write anything mission-critical.</p>
+
+<p>Despite that, it is actually rather stable.  Let me say more about why.</p>
+		</div>	
+	</content>
+  </entry>
+
+  <entry>
+
+    <id>vi</id>
+    <published>2009-11-22T00:07:00-07:00</published>
+    <updated>2009-11-22T00:07:00-07:00</updated>
+    <title>vi tips for Nu</title>	
+	<link href="http://programming-nu.github.io/posts/2009/11/22/vi" rel="alternate" type="text/html"/>
+    <content type="xhtml">
+		<div xmlns="http://www.w3.org/1999/xhtml">
+        <p>I'm collecting some tips for using the vim code editor with Nu.</p>
+		</div>	
+	</content>
+  </entry>
+
+  <entry>
+
+    <id>Nu-0.4.0</id>
+    <published>2009-11-17T04:07:00-07:00</published>
+    <updated>2009-11-17T04:07:00-07:00</updated>
+    <title>Nu-0.4.0</title>	
+	<link href="http://programming-nu.github.io/posts/2009/11/17/Nu-0.4.0" rel="alternate" type="text/html"/>
+    <content type="xhtml">
+		<div xmlns="http://www.w3.org/1999/xhtml">
+        <p>See the <a href="/downloads">downloads</a> page for this long-overdue update to Nu.</p>
+
+<p>The most visible change in this release is that the <strong>macro</strong> operator 
+has been switched to refer to <strong>macro-1</strong> 
+instead of <strong>macro-0</strong> (the original
+Nu macro facility). That is deprecated but kept for compatibility. </p>
+
+<p>Support for garbage collection is now compiled in by default (Mac OS only).</p>
+
+<p>We've also been making good progress running Nu on Linux-based systems.
+Currently a few small sites (including Tim's blog)
+are running with Nu on Rackspace Cloud Servers. See notes/DEBIANINSTALL in the
+Nu source distribution for details about building for Debian.</p>
+		</div>	
+	</content>
+  </entry>
+
+</feed>

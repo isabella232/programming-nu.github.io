@@ -1,0 +1,486 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>nubake</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta content="37.444542, -122.161050" name="ICBM" />
+<link media="all" href="/stylesheets/nu.css" type ="text/css" rel="stylesheet" />
+</head>
+<body>
+<div id="container">
+<div id="header">
+<div style="float:left; margin-right:10px">
+<img src="/files/recycle-s.png" height="50" alt="recycling symbol" />
+</div>
+<div style="float:left">
+<h1><a href="/">Programming Nu</a></h1>
+<h3><a href="https://github.com/programming-nu">github.com/programming-nu</a></h3>
+</div>
+</div>
+
+
+<div id="content">
+<div class="atomentry">
+	
+
+
+<div class="content" style="margin-bottom:10px">
+<p><img src="/files/nubake.png" alt="nubake"/></p>
+
+<h1>nubake</h1>
+
+<h1>"Bake" Nu code into compiled object files</h1> 
+</div>
+
+
+<div class="extended">
+<h3>About nubake</h3>
+
+<p><strong>nubake</strong> can be used to "bake" Nu source files into compiled objects.  This can be useful for simplifying and adding tamper-resistance to Nu applications.</p>
+
+<p><strong>nubake</strong> parses a Nu source file and writes an Objective-C function that, when called, returns the same parsed code structure that you would get by parsing the original source file. <br />
+You can then compile and link this into your Nu application and call the new Objective-C function instead of loading the original Nu source file.  You can either use <strong>nubake</strong> to generate a single function, or by adding the "-s" (standalone) option, you can generate a program that can be compiled into a standalone Nu-based binary.</p>
+
+<h3>Usage</h3>
+
+<p>Invoke <strong>nubake</strong> with the name of a Nu source file.  It also accepts the following arguments:</p>
+
+<table>
+<tr><td width="5%"> -n </td><td>to specify the name of the C function that is created.</td></tr>
+<tr><td> -o </td><td>to specify the name of the C output file.</td></tr>
+<tr><td> -s </td><td>to also generate a <strong>main()</strong> function so that the C output can be compiled standalone.</td></tr>
+</table>
+
+<p>Here's an example; we'll say it is in a file named <strong>ninetynine.nu</strong>:</p>
+
+<pre>
+(99 times:
+    (do (i)
+        (set count (- 99 i))
+        (puts <<-END
+#{count} bottles of Nu on the wall
+#{count} bottles of Nu
+Take one down, pass it around
+#{count} bottles of Nu on the wall
+END)))
+</pre>
+
+<p>To bake it, use the following command:</p>
+
+<pre>
+% nubake ninetynine.nu -s
+</pre>
+
+<p>Then compile it with gcc:</p>
+
+<pre>
+% gcc ninetynine.m -o ninetynine -framework Cocoa -framework Nu
+</pre>
+
+<p>Now run it.</p>
+
+<pre>
+% ninetynine 
+99 bottles of Nu on the wall
+99 bottles of Nu
+Take one down, pass it around
+99 bottles of Nu on the wall
+
+98 bottles of Nu on the wall
+98 bottles of Nu
+Take one down, pass it around
+98 bottles of Nu on the wall
+
+97 bottles of Nu on the wall
+97 bottles of Nu
+Take one down, pass it around
+97 bottles of Nu on the wall
+
+...
+</pre>
+
+<p>With options and comments, <strong>nubake</strong> is a little over 100 lines of code.  Its core is a small Nu method:</p>
+
+<pre>
+(+ (id) expandNuExpression:(id) node is
+   (set result "")
+   (cond ((eq node nil)
+          (result appendString:"_nunull()"))
+         ((node isKindOfClass:NuCell)
+          (result appendString:
+                  (+ "_nucell(" 
+                     (self expandNuExpression:(node car))
+                     ",\n"
+                     (self expandNuExpression:(node cdr)) 
+                     ")")))
+         ((node isKindOfClass:NuSymbol)
+          (result appendString:
+                  "_nusymbol(#{((node stringValue) characterArray)})"))
+         ((node isKindOfClass:NSString)
+          (result appendString:"_nustring(#{(node characterArray)})"))
+         ((node isKindOfClass:NSNumber)
+          (result appendString:"_nunumberd(#{node})"))
+         ((node isKindOfClass:NuRegex)
+          (result appendString:
+                  "_nuregex(#{((node pattern) characterArray)}, #{(node options)})"))        
+         (else (result appendString:"[ERROR]")))
+   result)
+</pre>
+
+<p>That's sufficient to turn any parsed Nu code into a nested set of C function calls that produces an equivalent structure.   Then that structure can be evaluated with something as simple as <code>(eval my-expression)</code>, where <code>my-expression</code> is set to the result of a call to your function.  If you want to make that function call from Nu, just wrap it with an instance of <strong>NuBridgedFunction</strong>:</p>
+
+<pre>
+(set ninetynine 
+     (NuBridgedFunction functionWithName:"ninetynine" signature:"@"))
+</pre>
+
+<p>Then call <strong>eval</strong> with its results:</p>
+
+<pre>
+(eval (ninetynine))
+</pre>
+</div>
+
+
+</div> <!-- atomentry -->
+</div> <!-- content -->
+<div id="sidebar">
+
+<div class="sidebar-node">
+<h2><a href="/about">About Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="http://groups.google.com/group/programming-nu/topics">Google Group:<br/>Programming Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/downloads">Download Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2>Git Repositories</h2>
+<ul>
+<li><a href="http://github.com/programming-nu/nu">nu</a></li>
+<li><a href="http://github.com/programming-nu/programming-nu">programming-nu</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/documentation">Documentation</a></h2>
+<ul>
+<li><a href="/installing">Installing Nu</a></li>
+<li><a href="/usage">Using Nu</a></li>
+<li><a href="/embedding">Embedding Nu</a></li>
+<li><a href="/reference">Nu Reference</a></li>
+<li><a href="/syntax">- Syntax</a></li>
+<li><a href="/operators">- Operators</a></li>
+<li><a href="/types">- Types</a></li>
+<li><a href="/doc/index.html">- Class Reference</a></li>
+<li><a href="/help">Getting and Providing Help</a></li>
+<li><a href="/debugging">Debugging Nu Programs</a></li>
+<li><a href="/textmate">A Bundle for TextMate Users</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/examples">Examples</a></h2>
+<ul>
+<li><a href="/randomapp">RandomApp</a></li>
+<li><a href="/randomappwithnibfile">RandomAppWithNibFile</a></li>
+<li><a href="/currencyconverter">Currency Converter</a></li>
+<li><a href="/nurocks">NuRocks</a></li>
+<li><a href="/console">Console</a></li>
+<li><a href="/growler">Growler</a></li>
+<li><a href="/benwanu">Benwanu</a></li>
+<li><a href="/screensaver">Screen Saver</a></li>
+<li><a href="/maildemo">MailDemo</a></li>
+<li><a href="/nuanywhere">NuAnywhere</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/tools">Tools</a></h2>
+<ul>
+<li><a href="/nuke">nuke, a make utility</a></li>
+<li><a href="/nubile">nubile, a code formatter</a></li>
+<li><a href="/nutest">nutest, a testing tool</a></li>
+<li><a href="/nudoc">nudoc, a documentation generator</a></li>
+<li><a href="/nutemplate">nutemplate, a templating tool</a></li>
+<li><a href="/nubake">nubake, a code generation tool</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/">Archives</a></h2>
+<ul>
+
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">July 2019</li>
+
+<li>
+<a href="/posts/2019/07/25/programming-nu-on-github">
+Programming Nu on GitHub</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">April 2013</li>
+
+<li>
+<a href="/posts/2013/04/14/Nu-2.1.0">
+Nu-2.1.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">September 2011</li>
+
+<li>
+<a href="/posts/2011/09/02/Nu-2.0.1">
+Nu-2.0.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">August 2011</li>
+
+<li>
+<a href="/posts/2011/08/25/Nu-2.0.0">
+Nu-2.0.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2009</li>
+
+<li>
+<a href="/posts/2009/12/09/stability">
+Nu Seems Stable (by Jason Grossman)</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2009</li>
+
+<li>
+<a href="/posts/2009/11/22/vi">
+vi tips for Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2009/11/17/Nu-0.4.0">
+Nu-0.4.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">January 2009</li>
+
+<li>
+<a href="/posts/2009/01/02/macros">
+Macros</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2008</li>
+
+<li>
+<a href="/posts/2008/12/03/Nu-0.3.3">
+Nu-0.3.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">June 2008</li>
+
+<li>
+<a href="/posts/2008/06/08/Nu-0.3.2">
+Nu-0.3.2</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">May 2008</li>
+
+<li>
+<a href="/posts/2008/05/23/cocoa-programming-with-nu">
+Cocoa Programming with Nu</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">March 2008</li>
+
+<li>
+<a href="/posts/2008/03/24/Nu-0.3.1">
+Nu-0.3.1</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/21/announcing-nu">
+Announcing Nu: The Video</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/18/nu-on-github">
+Nu on github</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/14/new-platforms">
+Linux and the iPhone</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/12/new-license">
+Apache License, v. 2.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">February 2008</li>
+
+<li>
+<a href="/posts/2008/02/13/Nu-0.3.0">
+Nu-0.3.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2007</li>
+
+<li>
+<a href="/posts/2007/12/12/nupagepacker">
+NuPagePacker</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/12/Nu-0.2.4">
+Nu-0.2.4</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/07/Nu-0.2.3">
+Nu-0.2.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2007</li>
+
+<li>
+<a href="/posts/2007/11/26/Nu-0.2.2">
+Nu-0.2.2</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/25/a-delicious-nu-screencast">
+A Delicious Nu Screencast</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/12/Nu-0.2.1">
+Nu-0.2.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">October 2007</li>
+
+<li>
+<a href="/posts/2007/10/17/new-literal-forms-in-nu">
+New Literal Forms in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/escape-sequences-in-nu-strings">
+Escape Sequences in Nu Strings</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/closures-in-nu">
+Closures in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/Nu-0.2.0">
+Nu-0.2.0</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/11/screen-savers-and-plugins">
+Screen Savers and Plugins</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/10/markdown-in-nu">
+Markdown in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/05/functional-nu">
+Functional Aspects of Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/04/randomapp-with-nibfile">
+New Example: Nib Files</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/01/welcome">
+Welcome</a> 
+</li>                                        
+
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/legal">Legal Details</a></h2>
+</div>
+
+</div> <!-- sidebar -->
+
+
+
+</div><!-- container -->
+</body>	
+</html>

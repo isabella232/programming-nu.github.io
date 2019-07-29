@@ -1,0 +1,1143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Operators</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta content="37.444542, -122.161050" name="ICBM" />
+<link media="all" href="/stylesheets/nu.css" type ="text/css" rel="stylesheet" />
+</head>
+<body>
+<div id="container">
+<div id="header">
+<div style="float:left; margin-right:10px">
+<img src="/files/recycle-s.png" height="50" alt="recycling symbol" />
+</div>
+<div style="float:left">
+<h1><a href="/">Programming Nu</a></h1>
+<h3><a href="https://github.com/programming-nu">github.com/programming-nu</a></h3>
+</div>
+</div>
+
+
+<div id="content">
+<div class="atomentry">
+	
+
+
+<div class="content" style="margin-bottom:10px">
+<h1>Nu Operators</h1>
+
+<p>Nu includes many useful built-in operators; here is a list of them.</p>
+
+<ul>
+<li><a href="/operators#assignment">Assignment</a></li>
+<li><a href="/operators#arithmeticandlogical">Arithmetic and Logical</a></li>
+<li><a href="/operators#listprocessing">List Processing</a></li>
+<li><a href="/operators#evaluation">Evaluation</a></li>
+<li><a href="/operators#controlflow">Control Flow</a></li>
+<li><a href="/operators#functions">Functions</a></li>
+<li><a href="/operators#macros">Macros</a></li>
+<li><a href="/operators#classesandmethods">Classes and Methods</a></li>
+<li><a href="/operators#exceptionhandling">Exception Handling</a></li>
+<li><a href="/operators#threadcontrol">Thread Control</a></li>
+<li><a href="/operators#system">System</a></li>
+</ul>
+
+<h2><a name="assignment">Assignment Operators</a></h2>
+
+<p><strong>set</strong> assigns a value to a symbol. Assignments may have global, local, or instance-specific scope, depending on the leading character of the name.</p>
+
+<ul>
+<li>Assignments to names beginning with '$' are given global scope.  Globally-assigned values are placed in slots in the underlying symbol representation.</li>
+<li>Assignments to names beginning with '@' are given instance-specific scope.  These are instance variables.</li>
+<li>All other assignments have local scope.  Locally-scoped assignments are maintained in dictionaries (instances of NSMutableDictionary) that are called <strong>contexts</strong>.</li>
+</ul>
+
+<pre>
+(set x 22)
+</pre>
+
+<p><strong>global</strong> assigns a value to a symbol with a forced global scope.  This allows global values to be set for names that do not begin with '$'.</p>
+
+<pre>
+(global Foo "foo")
+</pre>
+
+<p><strong>let</strong> creates a new context, makes a specified set of assignments within that context, and then evaluates a sequence of instructions in that same context.  </p>
+
+<pre>
+(let ((x 2)
+      (y 3))
+     (+ x y))
+</pre>
+
+<h2><a name="arithmeticandlogical">Arithmetic and Logical Operators</a></h2>
+
+<table width="100%">
+<tr><th align="left" width="50%">Operator</th>
+<th align="left" width="50%">Function</th></tr>
+<tr><td><strong>+ - * /<strong></td><td>basic arithmetic</td></tr>
+<tr><td><strong>& |<strong></td><td>bitwise logical</td></tr>
+<tr><td><strong>> < >= <= == != eq<strong></td><td>comparison</td></tr>
+<tr><td><strong> << >> <strong></td><td>shift</td></tr>
+<tr><td>and or not</td><td>logical</td></tr>
+</table>
+
+<h3>Telling truth</h3>
+
+<p>Several operators test values for truth.  In Nu, any object that is not <strong>nil</strong> 
+(the empty list) or <strong>0</strong> is considered to be true.
+The symbol <strong>t</strong> is also defined as a general-purpose "true" value.
+The value of <strong>t</strong> is itself.  It is as if we had said:</p>
+
+<pre>
+(global t 't)
+</pre>
+
+<h2><a name="listprocessing">List Processing Operators</a></h2>
+
+<p><strong>list</strong> evaluates its arguments and constructs a list of the results.</p>
+
+<p><strong>cons</strong> evaluates its arguments and creates a new list with the evaluated first argument at the head and the evaluated second argument as the tail.</p>
+
+<p><strong>car</strong> and
+<strong>head</strong> return the first element of a list.</p>
+
+<p><strong>cdr</strong> and
+<strong>tail</strong> return the rest of a list after the first element has been removed.</p>
+
+<p>The following example constructs a list that has the same structure as <code>mylist</code>:</p>
+
+<pre>
+(cons (car mylist) (cdr mylist))
+</pre>
+
+<p>The last element of a list is a special value called <strong>nil</strong>.
+In Nu, <strong>nil</strong> is represented by the singleton instance <code>[NSNull null]</code>. The following operations are equivalent:</p>
+
+<pre>
+(list 1 2 3)
+(cons 1 (cons 2 (cons 3 nil)))
+</pre>
+
+<p><strong>append</strong> joins two lists together to form a new list. The arguments are unchanged.</p>
+
+<pre>
+% (set a '(1 2))
+(1 2)
+% (set b '(3 4))
+(3 4)
+% (append a b)
+(1 2 3 4)
+% a
+(1 2)
+</pre>
+
+<p><strong>atom</strong> returns true if an element is not a list.
+<code>(atom nil)</code> also returns false, which is represented with <strong>nil</strong>.
+<strong>nil</strong> is displayed as an empty list,
+<strong>()</strong>.</p>
+
+<h2><a name="evaluation">Evaluation Operators</a></h2>
+
+<p><strong>quote</strong> prevents the evaluation of its argument.
+A single quote symbol is an abbreviated synonym for <strong>quote</strong>.</p>
+
+<pre>
+(quote (1 2 3))
+'(1 2 3)
+</pre>
+
+<p><strong>eval</strong> causes its argument to be evaluated.</p>
+
+<pre>
+(eval (quote (+ 2 2)))
+</pre>
+
+<p><strong>parse</strong> parses a string containing Nu source code into a list structure.</p>
+
+<pre>
+(parse "(+ 2 2)")
+</pre>
+
+<p><strong>context</strong> returns the current execution context
+(an <strong>NSMutableDictionary</strong>).</p>
+
+<h2><a name="controlflow">Control Flow Operators</a></h2>
+
+<h3>Conditional Operators</h3>
+
+<p><strong>cond</strong> scans through a list of lists, evaluating the 
+first member of each list.  When one evaluates true, the 
+remainder of that list is evaluated and the result of the
+last evaluation is returned.  If none evaluate true, the
+last list in the list of lists is evaluated.  Since the last clause is always evaluated, it is conventional but not required for it to begin with the <strong>else</strong> keyword.</p>
+
+<pre>
+(cond ((eq x 1) (puts "x is 1"))
+      ((eq x 2) (puts "x is 2"))
+      (else (puts "x is something else")))
+</pre>
+
+<p><strong>case</strong> tests an expression against a sequence of values,
+each at the head of a list.  When the expression matches a value,
+the rest of that value's list is evaluated and the result of
+the last evaluation is returned.  If none of the values match,
+the last list in the list of lists is evaluated.  Since the last clause is always evaluated, it is conventional but not required for it to begin with the <strong>else</strong> keyword.</p>
+
+<pre>
+(case  x
+      (1 (puts "x is 1"))
+      (2 (puts "x is 2"))
+      (else (puts "x is something else")))
+</pre>
+
+<p><strong>if</strong> tests an expression.  If it evaluates true,
+the rest of the expressions that follow are evaluated,
+except for any expressions in a list beginning with the
+<strong>else</strong> symbol.  These expressions will be evaluated
+if the expression evaluates false.</p>
+
+<pre>
+(if (eq x 1) 
+    (puts "x is 1")
+    (puts "i'm sure it is")
+    (else 
+         (puts "x is not 1")))
+</pre>
+
+<p>As a convenience, expressions can be grouped into lists 
+that begin with the <strong>then</strong> symbol.</p>
+
+<pre>
+(if (eq x 1)
+    (then (puts "x is 1"))
+    (else (if (eq x 2) 
+                (then (puts "x is 2"))
+                (else (puts "x is something else")))))
+</pre>
+
+<p><strong>unless</strong> can be seen as the opposite
+of the <strong>if</strong> operator. <br />
+<strong>unless</strong> tests an expression.  If it evaluates false,
+the rest of the expressions that follow are evaluated,
+except for any expressions in a list beginning with the
+<strong>else</strong> symbol.  These expressions will be evaluated
+if the expression evaluates true.</p>
+
+<h3>Looping Operators</h3>
+
+<p><strong>while</strong> tests an expression.  If it evaluates true,
+the rest of the expressions that follow are evaluated.
+Then the expression is tested again and evaluations continue
+until the expression evaluates to false. The following while expression prints the numbers from 1 to 10:</p>
+
+<pre>
+(set i 1)
+(while (<= i 10)
+    (puts i)
+    (set i (+ i 1)))
+</pre>
+
+<p><strong>until</strong> can be seen as the opposite of the
+<strong>while</strong> operator.
+<strong>until</strong> tests an expression.  If it evaluates false,
+the rest of the expressions that follow are evaluated.
+Then the expression is tested again and evaluations continue
+until the expression evaluates to true.
+The following until expression prints the numbers
+from 1 to 10:</p>
+
+<pre>
+(set i 1)
+(until (eq i 10)
+    (puts i)
+    (set i (+ i 1)))
+</pre>
+
+<p><strong>for</strong> acts like the C for loop. Its first argument
+should be a list of three expressions that will be evaluated
+(1) to initialize the loop, (2) to test whether to evaluate the 
+loop body, and (3) to modify a state variable after each
+time the loop body is evaluated.  The rest of the expressions
+are used as the loop body.
+The following for expression prints the numbers
+from 1 to 10:</p>
+
+<pre>
+(for ((set i 1) (<= i 10) (set i (+ i 1)))
+     (puts i))
+</pre>
+
+<p><strong>break</strong> throws an exception that will be caught by
+the innermost while, until, or for loop, which will immediately
+terminate.</p>
+
+<p><strong>continue</strong> throws an exception that will be caught by
+the innermost while, until, or for loop, which will immediately
+continue to the next loop iteration.</p>
+
+<h3>Sequencing Operators</h3>
+
+<p><strong>progn</strong> evaluates a sequence of expression and returns
+the result of the last evaluation.  Many Nu operators contain
+implicit progn operators.</p>
+
+<p><strong>send</strong> sends a message to an object.  Normally
+it is not needed, but for a few kinds of objects,
+such as blocks, functions, and macros, the normal
+list syntax for message sending is treated as a 
+call.  This operator was added to allow messages 
+to be sent to these objects.</p>
+
+<h2><a name="functions">Functions</a></h2>
+
+<p><strong>function</strong> creates a named function in the current evaluation
+context. It expects three arguments: the function name,
+a list of function parameters, and the body of the function.
+The body of the function is an implicit <strong>progn</strong>.</p>
+
+<pre>
+(function addtwo (x y)
+   (+ x y))
+</pre>
+
+<p><strong>do</strong> is used to create blocks, otherwise known as anonymous functions.
+As an example, the following expression creates a 
+block that returns the sum of its two arguments:</p>
+
+<pre>
+(do (x y)
+    (+ x y))
+</pre>
+
+<p>A block is represented by a list of argument names, an execution context 
+(saved when the block is created), and the parsed code to be evaluated. <br />
+The <strong>do</strong> operator can be used to explicitly create blocks; several other
+operators create blocks implicitly.</p>
+
+<p>Blocks and functions can now be defined to accept variable numbers of 
+arguments. To do this, the last parameter in the parameter list should 
+begin with an asterisk; this name (including the asterisk) will be bound 
+to a list of remaining arguments when the block is evaluated. That list 
+can be nil if no additional arguments are specified.</p>
+
+<pre>
+% (function my-apply (operator *operands)
+    (eval (cons operator *operands)))
+
+% (my-apply + 1 2 3)
+6
+</pre>
+
+<p>An implicit variable named <em>*args</em> is available in the body of a block
+or function. <em>*args</em> contains a list of all arguments that are passed
+into the block or function.</p>
+
+<pre>
+% (function f (a b)
+    (puts "Arg1 = #{a}, all args = #{*args}"))
+
+% (f 1 2)
+Arg1 = 1, all args = (1 2)
+</pre>
+
+<p>It's a good idea to not use function or block argument parameters
+named <em>*args</em> so that there is no conflict with the implicit variable.
+However, if a parameter named <em>*args</em> appears in a block or function's
+argument list, it will override the implicit variable.</p>
+
+<p>When a block is created with the <strong>function</strong> operator or called 
+anonymously, all of its arguments are evaluated in the calling context 
+before the block is evaluated. Most of the time, the evaluation of code 
+in a block takes place in the context that was saved when the block was 
+created.</p>
+
+<h2><a name="macros">Macros</a></h2>
+
+<blockquote>
+  <p>Note: the functionality of <strong>macro</strong> has changed in Nu 0.4.0.
+Macro definitions now require argument lists just like functions and blocks, 
+and there is no longer an implicit quote applied to the body of the macro.
+The old style macro operator is still available, but has been renamed 
+<a href="/macro-0"><strong>macro-0</strong></a>.</p>
+</blockquote>
+
+<p>Macros are similar to functions, although they provide two additional 
+features that are not available when defining a function or block:</p>
+
+<ol>
+<li>Macros execute in the evaluation context of the calling block.</li>
+<li>The body of a macro can control how its arguments are evaluated.</li>
+</ol>
+
+<p><strong>macro</strong> creates a named macro in the current evaluation context.
+It expects three arguments: the macro name, the argument list, and the 
+body of the macro.  The body of a macro consists of one or more expressions.</p>
+
+<p>A macro is executed in two phases.  The first phase is <em>macro-expansion</em>.
+During macro-expansion, the body of the macro is evaluated using the values 
+passed into the macro via its argument list.  Any symbols in the calling 
+context that have the same name as the macro arguments are temporarily 
+masked until the expansion is complete.</p>
+
+<p>Once the macro-expansion phase is complete, the <em>execution</em> phase takes place, 
+where the macro-expanded code is executed in the caller's context.</p>
+
+<p>Here's a simple example of a macro that increments a variable in-place:</p>
+
+<pre>
+(macro inc! (n)
+    `(set ,n (+ ,n 1)))
+</pre>
+
+<p>During the macro-expansion phase, Nu generates code using the calling 
+context and the argument list variables.  Calling the <em>inc!</em> macro 
+with an argument of <em>a</em> expands to this:</p>
+
+<pre>
+;; the macro-expansion phase for the call (inc! a):
+(set a (+ a 1))
+</pre>
+
+<p>Normally, macro-expansion is followed immediately by execution so
+the above intermediate macro-expansion code is not seen:</p>
+
+<pre>
+% (set a 1)
+1
+% (inc! a)
+2
+% a
+2
+</pre>
+
+<h3>Gensyms</h3>
+
+<p>There are often times when local variables are needed in the body of 
+a macro.  Since a macro is executed in the context of the caller, there
+is a chance that the name of a local variable in the macro definition 
+might conflict with a name of a variable that is already defined
+in the calling context.</p>
+
+<p>An example of how macro variables can conflict with the calling context:</p>
+
+<pre>
+(macro badmacro (x y)
+    `(progn
+        ;; a and b hold temp values
+        (set a (* ,x ,x))
+        (set b (* ,y ,y))
+        (+ a b)))
+</pre>
+
+<p>The above macro computes the sum of the squares of x and y (a macro
+isn't needed for this, but it illustrates an important point). 
+If a variable named <em>a</em> or <em>b</em>  is already defined in the calling
+context, the body of <em>badmacro</em> will overwrite the calling context's
+values:</p>
+
+<pre>
+% ;; nush is the calling context
+% (set a 3)
+3
+% (set b 2)
+2
+% (badmacro a b)
+13
+% a
+9
+% b
+4
+</pre>
+
+<p>Unusual variable names could be employed in the body of the macro
+to reduce the chances of a conflict in variable names:</p>
+
+<pre>
+(macro not-as-bad-macro (x y)  ;; but still a danger
+    `(progn
+        ;; unusual-name-a and unusual-name-b hold temp values
+        (set unusual-name-a (* ,x ,x))
+        (set unusual-name-b (* ,y ,y))
+        (+ unusual-name-a unusual-name b)))
+</pre>
+
+<p>This is clearly safer, but there is still no way to guarantee that 
+the caller is not using the same unusual variable names.</p>
+
+<p>There is a solution:  Nu can generate variable names that 
+are guaranteed to be unique at runtime.  These generated variables are 
+known as <em>gensyms</em> (a name that originated with Lisp and is short 
+for <em>generated symbol</em>).</p>
+
+<p>The way to declare a gensym variable in a Nu macro is to begin the 
+variable name with a double underscore.  When the macro is expanded, 
+all gensym variables are replaced with unique variable names.</p>
+
+<pre>
+(macro goodmacro (x y)
+    `(progn
+        ;; __a and __b will be replaced with unique names
+        (set __a (* ,x ,x))
+        (set __b (* ,y ,y))
+        (+ __a __b)))
+</pre>
+
+<p>The above macro has two gensym variables.  At macro-expansion time, 
+the gensyms will be replaced by variables that are guaranteed to be 
+unique and there will no longer be a chance of conflicting with 
+variables in the calling context.</p>
+
+<p>For the curious, the macro-expansion for the above call to <em>goodmacro</em> 
+looks like this:</p>
+
+<pre>
+(progn 
+    (set g1025202362__a (* a a)) 
+    (set g1025202362__b (* b b)) 
+    (+ g1025202362__a g1025202362__b))
+</pre>
+
+<h3>Destructuring Argument Lists</h3>
+
+<p>Nu macros also support <em>destructuring</em> argument lists.  Destructuring 
+takes the place of writing extra parsing code to manually pick apart 
+a nested argument list inside the body of a macro.</p>
+
+<p>For example, here is a way to implement a simple for-loop operator 
+with <strong>macro</strong>.  The <em>var</em>, <em>start</em> and <em>stop</em> arguments are 
+grouped into a sublist within the macro parameter list: </p>
+
+<pre>
+% (macro myfor ((var start stop) *body)
+    `(let ((,var ,start) 
+        (__gstop ,stop))   ;; only evaluate 'stop' once 
+        (while (<= ,var __gstop) 
+            ,@*body 
+            (set ,var (+ ,var 1))))) 
+</pre>
+
+<p>The above macro looks more natural from the caller's
+perspective as well:</p>
+
+<pre>
+% (set n 0) 
+0 
+% ;; Sum up the first 10 natural integers 
+% (myfor (i 1 10) 
+    (set n (+ n i))) 
+% n 
+55
+</pre>
+
+<p>The above for-loop macro also demonstrates another common idiom when
+writing macros: using a final argument name that starts 
+with an asterisk to capture the remaining unmatched arguments passed 
+to the macro call.  In many macros, including the example above, 
+the "remaining unmatched arguments" will be a body of code.</p>
+
+<p>The <strong>,@</strong> operator (shorthand for <strong>quasiquote-splice</strong>) conveniently
+"splices" the body of code into the body of the macro.</p>
+
+<p><strong>macro</strong> can destructure arbitrarily complex argument lists:</p>
+
+<pre>
+% (macro add-diagonal (((x1 x2 x3)
+                          (y1 y2 y3)
+                          (z1 z2 z3))) 
+    `(+ ,x1 ,y2 ,z3)) 
+% (add-diagonal ((1 2 3) (4 5 6) (7 8 9))) 
+15
+</pre>
+
+<h3>The Implicit *args Variable</h3>
+
+<p>As in functions and blocks, there is an implicit variable named 
+<em><em>args</em> available in the body of a macro definition.
+<em></em>args</em> contains the entire list of arguments passed into the 
+macro.</p>
+
+<p>It's a good idea to not declare a macro argument parameter
+named <em>*args</em> so that there is no conflict with the implicit variable.
+However, if a parameter named <em>*args</em> appears in a macro's
+argument list, it will override the implicit variable.</p>
+
+<p>Here's a simple example of using <em>*args</em> to print out all of the
+arguments passed into a macro:</p>
+
+<pre>
+% (macro mymacro (operator *operands)
+    `(progn
+        (puts "Arg list: #{*args}")
+        ;; do something useful
+        ))
+
+% (mymacro + 1 2 3) 
+Arg list: (+ 1 2 3)
+</pre>
+
+<h3>Macro Expansion</h3>
+
+<p>When writing or debugging a macro, it is sometimes helpful to see 
+what code the macro-expansion phase is generating without actually
+evaluating the macro form.  <strong>macrox</strong> does exactly this.</p>
+
+<pre>
+% (macrox 
+        (myfor (i 1 10) 
+            (set n (+ n i))))
+
+(let ((i 1) 
+      (g1350490027__gstop 10)) 
+  (while (\<= i g1350490027__gstop) 
+    (set n (+ n i)) 
+    (set i (+ i 1))))
+</pre>
+
+<p>The macro-expanded code that is returned by <strong>macrox</strong> can
+generally be evaluated directly by <strong>eval</strong>, which should have 
+the same effect as just calling the macro directly.</p>
+
+<h3>More about macros</h3>
+
+<p>A short tutorial on writing Nu macros can be found <a href="/macro-tutorial">here</a>.</p> 
+</div>
+
+
+<div class="extended">
+<h2><a name="classesandmethods">Classes and Methods</a></h2>
+
+<p>The <strong>class</strong> operator defines or extends a class.
+If a subclass is specified, presumably a new
+class is to be created.  Subsequent expressions 
+within the operator may be used to add 
+instance methods, class methods, and instance
+variables to the class.  </p>
+
+<p>When the <strong>class</strong> operator is used to create a new class,
+the class's parent class must be specified after the <strong>is</strong> keyword.</p>
+
+<pre>
+(class MyWindowController is NSWindowController
+   ...
+)
+</pre>
+
+<p>When the <strong>class</strong> operator is used to extend a class that has already been defined, you can omit the superclass.</p>
+
+<pre>
+(class NSString
+  ...
+)
+</pre>
+
+<p><strong>imethod</strong> adds an instance method to a class.
+It should only be used within a class operator. Return type and argument types may be specified in the method declaration.  The <strong>is</strong> keyword marks the end of the interface definition and the beginning of the method body.  </p>
+
+<p>The following example adds a method to a subclass of NSView:</p>
+
+<pre>
+(class NuRocksView is NSView
+     ...    
+     (imethod (void) drawRect:(NSRect) rect is
+     ... ))  
+</pre>
+
+<p>Type names must be specified in parentheses.  The types that can be specified are listed in the following table:</p>
+
+<table width="100%">
+<tr><td width="20%"></strong>void<strong></td><td> No value.  Use this to specify that a method returns no value.
+(void) should never be used as the type of an argument. </td></tr>
+<tr><td><strong>id</strong></td><td> An object. The Nu equivalent is an instance of any class. </td></tr>
+<tr><td><strong>int</strong></td><td> An integer. The Nu equivalent is an NSNumber. </td></tr>
+<tr><td><strong>BOOL</strong></td><td> A boolean. The Nu equivalent is an NSNumber. </td></tr>
+<tr><td><strong>double</strong></td><td> A double. The Nu equivalent is an NSNumber. </td></tr>
+<tr><td><strong>float</strong></td><td> A float. The Nu equivalent is an NSNumber. </td></tr>
+<tr><td><strong>NSRect</strong></td><td> A rectangle. The Nu equivalent is a list of four numbers. </td></tr>
+<tr><td><strong>NSPoint</strong></td><td> A point. The Nu equivalent is a list of two numbers. </td></tr>
+<tr><td><strong>NSSize</strong></td><td> A size. The Nu equivalent is a list of two numbers. </td></tr>
+<tr><td><strong>NSRange</strong></td><td> A range.  The Nu equivalent is a list of two numbers. </td></tr>
+<tr><td><strong>SEL</strong></td><td> A selector.  The Nu equivalent is a string that corresponds to the selector name.  </td></tr>
+<tr><td><strong>Class</strong></td><td> A class instance.  Classes may be specified with a symbol that matches the class name. </td></tr>
+</table>
+
+<p>See the sample programs for many examples.  If type information is omitted, the Objective-C runtime will be checked for a method with a matching selector.  If found, its method signature will be used.  If there is no
+matching selector, the return type and all argument types will
+be assumed to be <strong>(id)</strong>.</p>
+
+<p>As a convenience, a dash (<strong>-</strong>) is a synonym for <strong>imethod</strong>.  So if you prefer, you can create instance methods with this simplified syntax:</p>
+
+<pre>
+(class NuRocksView is NSView
+     ...    
+     (- drawRect:rect is
+     ... ))  
+</pre>
+
+<p>This creates an instance method named drawRect.  The new method uses the signature that is obtained by sending <strong>instanceMethodSignatureForSelector:</strong> to the class being extended.  For more examples of the brief syntax, see the "NuRocks":/nurocks sample program.</p>
+
+<p>When a block is added as a method, it is wrapped in a libffi closure that automatically adds <tt>self</tt> and <tt>super</tt> to the block's context each time it is evaluated.  Method arguments are always evaluated in the calling context before the method block is evaluated.</p>
+
+<p><strong>cmethod</strong> adds a class method to a class.
+It should only be used within a class operator.  Its usage mirrors that of <strong>imethod</strong>.
+As a convenience, a plus sign (<strong>+</strong>) is a synonym for <strong>cmethod</strong>.</p>
+
+<p><strong>ivar</strong> adds typed instance variables to a class.
+It should only be used before any instances of the
+associated class have been created.  Any number of new instance variables can be specified in a single <strong>ivar</strong> operator.  Each new instance variable is specified by its return type and name.  Here is an example from the "Benwanu":/benwanu sample program:</p>
+
+<pre>
+(ivar (id) view 
+      (id) progressBar
+      (id) imageRep
+      (int) offset
+      (double) minX
+      (double) minY 
+      (double) maxX 
+      (double) maxY 
+      (int) width 
+      (int) height)
+</pre>
+
+<p><strong>ivars</strong> adds dynamic instance variables to a class.
+This operator should only be used
+before any instances of the associated class have been
+created.  It adds a hidden ivar to the class that's used to point to an
+NSMutableDictionary. From then on, you can add ivars to class
+instances whenever you want.  Whenever you set an ivar, If there's no
+corresponding one in the runtime, its value will be added to the
+dictionary with its name as the key.</p>
+
+<p><strong>ivar-accessors</strong> adds automatic get and set methods for all instance variables of a class.
+These methods are implemented using the 
+<strong>handleUnknownMessage:withContext:</strong>
+method of <strong>NSObject(Nu)</strong>.</p>
+
+<h2><a name="exceptionhandling">Exception Handling Operators</a></h2>
+
+<p><strong>try</strong>  wraps a sequence of statement evaluations in
+an exception handler.
+Expressions that follow are evaluated
+until a list beginning with <strong>catch</strong> is reached.  The
+expressions in this list are not evaluated unless an exception
+is thrown by the evaluated expressions, in which case,
+execution jumps to the code in the catch section.</p>
+
+<pre>
+(try 
+    (do-something-dangerous)
+    (catch (exception)
+        (handle-exception exception))
+</pre>
+
+<p><strong>throw</strong> throws an exception. Any object may be thrown as the exception.</p>
+
+<pre>
+% (try 
+-   (throw 22)
+-   (catch (object)
+-      (puts object)))
+22
+</pre>
+
+<h2><a name="threadcontrol">Thread Control Operators</a></h2>
+
+<p><strong>synchronized</strong> evaluates a list of expressions after synchronizing
+on an object.  The synchronization object is the first argument.</p>
+
+<pre>
+(synchronized object
+    (task1)
+    (task2)
+    ...)
+</pre>
+
+<h2><a name="system">System Operators</a></h2>
+
+<p><strong>load</strong> loads a file or bundle. To load a file from a specific bundle, use the following form:</p>
+
+<pre>
+(load "bundlename:filename")
+</pre>
+
+<p><strong>system</strong> executes an operating system command.</p>
+
+<pre>
+(system "mkdir foo")
+</pre>
+
+<p><strong>puts</strong> writes a string to the console followed by a carriage return. 
+<strong>print</strong> writes a string to the console with no carriage return.
+Both operators return nil.</p>
+
+<pre>
+% (puts "hello")
+hello
+()
+% (progn
+-   (print "hello, ")
+-   (puts "world"))
+hello, world
+()
+</pre>
+
+<p><strong>help</strong> returns help text for an object.</p>
+
+<pre> 
+% (help do)
+This operator is used to create blocks.
+For example, the following expression creates a 
+block that returns the sum of its two arguments:
+(do (x y)
+        (+ x y))
+</pre>
+
+<p><strong>version</strong> returns a string describing the current version of Nu.</p>
+
+<p><strong>beep</strong> causes the system to beep.</p>
+</div>
+
+
+</div> <!-- atomentry -->
+</div> <!-- content -->
+<div id="sidebar">
+
+<div class="sidebar-node">
+<h2><a href="/about">About Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="http://groups.google.com/group/programming-nu/topics">Google Group:<br/>Programming Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/downloads">Download Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2>Git Repositories</h2>
+<ul>
+<li><a href="http://github.com/programming-nu/nu">nu</a></li>
+<li><a href="http://github.com/programming-nu/programming-nu">programming-nu</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/documentation">Documentation</a></h2>
+<ul>
+<li><a href="/installing">Installing Nu</a></li>
+<li><a href="/usage">Using Nu</a></li>
+<li><a href="/embedding">Embedding Nu</a></li>
+<li><a href="/reference">Nu Reference</a></li>
+<li><a href="/syntax">- Syntax</a></li>
+<li><a href="/operators">- Operators</a></li>
+<li><a href="/types">- Types</a></li>
+<li><a href="/doc/index.html">- Class Reference</a></li>
+<li><a href="/help">Getting and Providing Help</a></li>
+<li><a href="/debugging">Debugging Nu Programs</a></li>
+<li><a href="/textmate">A Bundle for TextMate Users</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/examples">Examples</a></h2>
+<ul>
+<li><a href="/randomapp">RandomApp</a></li>
+<li><a href="/randomappwithnibfile">RandomAppWithNibFile</a></li>
+<li><a href="/currencyconverter">Currency Converter</a></li>
+<li><a href="/nurocks">NuRocks</a></li>
+<li><a href="/console">Console</a></li>
+<li><a href="/growler">Growler</a></li>
+<li><a href="/benwanu">Benwanu</a></li>
+<li><a href="/screensaver">Screen Saver</a></li>
+<li><a href="/maildemo">MailDemo</a></li>
+<li><a href="/nuanywhere">NuAnywhere</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/tools">Tools</a></h2>
+<ul>
+<li><a href="/nuke">nuke, a make utility</a></li>
+<li><a href="/nubile">nubile, a code formatter</a></li>
+<li><a href="/nutest">nutest, a testing tool</a></li>
+<li><a href="/nudoc">nudoc, a documentation generator</a></li>
+<li><a href="/nutemplate">nutemplate, a templating tool</a></li>
+<li><a href="/nubake">nubake, a code generation tool</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/">Archives</a></h2>
+<ul>
+
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">July 2019</li>
+
+<li>
+<a href="/posts/2019/07/25/programming-nu-on-github">
+Programming Nu on GitHub</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">April 2013</li>
+
+<li>
+<a href="/posts/2013/04/14/Nu-2.1.0">
+Nu-2.1.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">September 2011</li>
+
+<li>
+<a href="/posts/2011/09/02/Nu-2.0.1">
+Nu-2.0.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">August 2011</li>
+
+<li>
+<a href="/posts/2011/08/25/Nu-2.0.0">
+Nu-2.0.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2009</li>
+
+<li>
+<a href="/posts/2009/12/09/stability">
+Nu Seems Stable (by Jason Grossman)</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2009</li>
+
+<li>
+<a href="/posts/2009/11/22/vi">
+vi tips for Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2009/11/17/Nu-0.4.0">
+Nu-0.4.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">January 2009</li>
+
+<li>
+<a href="/posts/2009/01/02/macros">
+Macros</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2008</li>
+
+<li>
+<a href="/posts/2008/12/03/Nu-0.3.3">
+Nu-0.3.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">June 2008</li>
+
+<li>
+<a href="/posts/2008/06/08/Nu-0.3.2">
+Nu-0.3.2</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">May 2008</li>
+
+<li>
+<a href="/posts/2008/05/23/cocoa-programming-with-nu">
+Cocoa Programming with Nu</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">March 2008</li>
+
+<li>
+<a href="/posts/2008/03/24/Nu-0.3.1">
+Nu-0.3.1</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/21/announcing-nu">
+Announcing Nu: The Video</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/18/nu-on-github">
+Nu on github</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/14/new-platforms">
+Linux and the iPhone</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/12/new-license">
+Apache License, v. 2.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">February 2008</li>
+
+<li>
+<a href="/posts/2008/02/13/Nu-0.3.0">
+Nu-0.3.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2007</li>
+
+<li>
+<a href="/posts/2007/12/12/nupagepacker">
+NuPagePacker</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/12/Nu-0.2.4">
+Nu-0.2.4</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/07/Nu-0.2.3">
+Nu-0.2.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2007</li>
+
+<li>
+<a href="/posts/2007/11/26/Nu-0.2.2">
+Nu-0.2.2</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/25/a-delicious-nu-screencast">
+A Delicious Nu Screencast</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/12/Nu-0.2.1">
+Nu-0.2.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">October 2007</li>
+
+<li>
+<a href="/posts/2007/10/17/new-literal-forms-in-nu">
+New Literal Forms in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/escape-sequences-in-nu-strings">
+Escape Sequences in Nu Strings</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/closures-in-nu">
+Closures in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/Nu-0.2.0">
+Nu-0.2.0</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/11/screen-savers-and-plugins">
+Screen Savers and Plugins</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/10/markdown-in-nu">
+Markdown in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/05/functional-nu">
+Functional Aspects of Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/04/randomapp-with-nibfile">
+New Example: Nib Files</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/01/welcome">
+Welcome</a> 
+</li>                                        
+
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/legal">Legal Details</a></h2>
+</div>
+
+</div> <!-- sidebar -->
+
+
+
+</div><!-- container -->
+</body>	
+</html>

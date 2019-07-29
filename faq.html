@@ -1,0 +1,430 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Frequently Asked Questions</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta content="37.444542, -122.161050" name="ICBM" />
+<link media="all" href="/stylesheets/nu.css" type ="text/css" rel="stylesheet" />
+</head>
+<body>
+<div id="container">
+<div id="header">
+<div style="float:left; margin-right:10px">
+<img src="/files/recycle-s.png" height="50" alt="recycling symbol" />
+</div>
+<div style="float:left">
+<h1><a href="/">Programming Nu</a></h1>
+<h3><a href="https://github.com/programming-nu">github.com/programming-nu</a></h3>
+</div>
+</div>
+
+
+<div id="content">
+<div class="atomentry">
+	
+
+
+<div class="content" style="margin-bottom:10px">
+<h1>Frequently Asked Questions about Nu</h1>
+
+<p>I've seen a lot of discussion of Nu on various forums.  Rather than chase after each thread, I've instead put some responses to common questions here.</p>
+
+<h3>Why S-expressions? Were you just too lazy to write a real parser?</h3>
+
+<p>I have been wanting to write software with S-expressions for a long time.  Ironically, now that I've written a language that uses them, people are talking about putting a Ruby or Python syntax on top of it!  </p>
+
+<p>After you've written a certain amount of code, you begin to realize that your code isn't just an accomplishment.  If you've been successful, then your code is now a responsibility for you and other people to manage.  One of the best ways to manage something is to write tools to do that management for you, and S-expressions make code a lot easier to manage.  I also believe that S-expressions can make code easier to read (really!).  S-expressions make it easy to write tools that automatically format code and that automatically extract all kinds of useful information (documentation, for example).  And when something is easy, it usually gets done.</p>
+
+<p>Larry Wall has famously said that <a href="http://www.oreilly.com/catalog/opensources/book/larry.html">laziness</a> is a virtue.  But it's not about being too lazy to write a parser. Let's instead be too lazy to do things that get in the way of doing what we really want to do, which is to use the power of software to write better software.</p>
+
+<h3>I'd rather use a Smalltalk-style syntax.</h3>
+
+<p>Then you should work with Philippe Mougin on the F-Script project.  He's been doing a lot of great work  on it for a long time, and through the power of Objective-C, Nu and F-Script are fully interoperable.</p>
+
+<h3>I'd rather use Ruby.</h3>
+
+<p>OK.  I've <a href="/rubycocoa-and-rubyobjc">already commented on that</a>.</p>
+
+<h3>Is Nu a development language or a scripting language?</h3>
+
+<p>Both! I was actually surprised by how easy it is to write scripts in Nu once you get familiar with the standard Objective-C classes and build up a few convenience functions, but I originally started working on Nu because I wanted a better development language.</p>
+
+<p>I wanted a development language that was interpreted and interactive, and one that was malleable enough for me to quickly write rough prototypes that I could smoothly transform into products.  I would have been willing to use an existing Lisp, but with what libraries?  and what community?  The Objective-C community is rich and thriving.  Objective-C has been the basis for one very successful computing platform (Mac OS X), and soon possibly another (the iPhone).  But apparently it hasn't been practical to build such large-scale platforms on Common (or any other) Lisp.  </p>
+
+<p>But back to the point, there is way too much code in the world written in compiled low-level languages like C and its dialects (C++ and Objective-C). Sure, things that have to be fast or tight can be written in C; that's the best way to stay close to the machine.  But if you are an application developer, I'll bet that the majority of your application can be written in a lightweight dynamic language like Nu, and you'll wind up with a lot less code (and fewer people on your team).  For an example, see the <a href="/benwanu">Benwanu</a> sample program, and if you're still not convinced, rewrite it in Objective-C and make some performance measurements.  Notice any difference?</p>
+
+<h3>How does Nu give me "the power of C" if it's interpreted?</h3>
+
+<p>Because it is directly built on the Objective-C runtime, Nu can call methods written in Objective-C with <em>no glue code</em>. And because Nu and Objective-C methods are indistinguishable to the caller, you can gradually migrate code from Nu to Objective-C as your architecture stabilizes.  Want to convert a method from Nu to Objective-C?  Go ahead, none of its callers ever needs to know about the change.  </p>
+
+<h3>Can I use Nu without knowing Objective-C?</h3>
+
+<p>No, at least not if you intend to use it to write Cocoa applications.  In <a href="http://www.rubycocoa.com/about">my</a> <a href="http://www.rubyobjc.com/about">experience</a>, it is a mistake to think that you can use Cocoa from any higher-level language if you don't understand what's happening at the Objective-C level.  But that doesn't mean that Nu is an "advanced" language.  Its interactive console is a great tool for Cocoa newcomers who want to explore outside their box of official Apple documentation.  </p>
+
+<h3>But I don't want to learn Objective-C!</h3>
+
+<p>Sorry, but it's really not that hard, especially if you already know C.  Objective-C is just a thin layer of object-oriented features on top of C.  Its main features allow you to define classes with instance and class methods that act a lot like Ruby methods, but they are <em>fast</em> because they are written in C.  And unlike Ruby, Java, C++, etc. you won't need a shelf-full of books to know what you need.  Just invest ten dollars in Andrew Duncan's <a href="http://www.rubycocoa.com/book_review/objective-c-pocket-reference">Objective-C Pocket Reference (O'Reilly)</a>.
+You can read it in an afternoon.  Then start browsing Apple's online class documentation and work your way through the Nu sample code.</p>
+
+<h3>Will Nu work with Objective-C 2.0 garbage collection?</h3>
+
+<p>For now, no.  Currently the Nu binary release is only available in a reference-counted version. <br />
+But why are you using Objective-C garbage collection in the first place?  When you write with Nu, reference counts for objects are maintained automatically and your program will contain a lot less Objective-C source code.  Since currently Apple's garbage collection is closed-source, if you write code that uses it, your code is only as good as your understanding of Apple's good-but-never-perfect documentation. Also, did you notice that there's no garbage collection on the iPhone? But Nu and reference counted Objective-C run just fine on the iPhone and on Linux, which can open surprising <a href="/posts/2008/03/14/new-platforms">opportunities</a>.</p>
+
+<h3>Do I care if you use Nu or not?</h3>
+
+<p>Well, yeah!  I've learned a lot from the people who've started using it.  It's been exciting to see the progress people made with it, even in the first week it was released.  If you're brave enough to join our <a href="http://groups.google.com/group/programming-nu">community</a>, I'll help you through the rough spots.</p>
+
+<h3>Is Nu really <a href="http://rentzsch.com/psig/108">more exciting than Leopard</a>?</h3>
+
+<p>No. Nu is a boring language for programmers.  Its creator isn't charging the user community millions for upgrades, and you can't buy a family pack or swipe it off of BitTorrent.  Since it's been released, there's no suspense about Nu's ship date, and since it's open source, there's no mystery about how (or whether) it works. </p> 
+</div>
+
+
+<div class="extended">
+
+</div>
+
+
+</div> <!-- atomentry -->
+</div> <!-- content -->
+<div id="sidebar">
+
+<div class="sidebar-node">
+<h2><a href="/about">About Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="http://groups.google.com/group/programming-nu/topics">Google Group:<br/>Programming Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/downloads">Download Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2>Git Repositories</h2>
+<ul>
+<li><a href="http://github.com/programming-nu/nu">nu</a></li>
+<li><a href="http://github.com/programming-nu/programming-nu">programming-nu</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/documentation">Documentation</a></h2>
+<ul>
+<li><a href="/installing">Installing Nu</a></li>
+<li><a href="/usage">Using Nu</a></li>
+<li><a href="/embedding">Embedding Nu</a></li>
+<li><a href="/reference">Nu Reference</a></li>
+<li><a href="/syntax">- Syntax</a></li>
+<li><a href="/operators">- Operators</a></li>
+<li><a href="/types">- Types</a></li>
+<li><a href="/doc/index.html">- Class Reference</a></li>
+<li><a href="/help">Getting and Providing Help</a></li>
+<li><a href="/debugging">Debugging Nu Programs</a></li>
+<li><a href="/textmate">A Bundle for TextMate Users</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/examples">Examples</a></h2>
+<ul>
+<li><a href="/randomapp">RandomApp</a></li>
+<li><a href="/randomappwithnibfile">RandomAppWithNibFile</a></li>
+<li><a href="/currencyconverter">Currency Converter</a></li>
+<li><a href="/nurocks">NuRocks</a></li>
+<li><a href="/console">Console</a></li>
+<li><a href="/growler">Growler</a></li>
+<li><a href="/benwanu">Benwanu</a></li>
+<li><a href="/screensaver">Screen Saver</a></li>
+<li><a href="/maildemo">MailDemo</a></li>
+<li><a href="/nuanywhere">NuAnywhere</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/tools">Tools</a></h2>
+<ul>
+<li><a href="/nuke">nuke, a make utility</a></li>
+<li><a href="/nubile">nubile, a code formatter</a></li>
+<li><a href="/nutest">nutest, a testing tool</a></li>
+<li><a href="/nudoc">nudoc, a documentation generator</a></li>
+<li><a href="/nutemplate">nutemplate, a templating tool</a></li>
+<li><a href="/nubake">nubake, a code generation tool</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/">Archives</a></h2>
+<ul>
+
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">July 2019</li>
+
+<li>
+<a href="/posts/2019/07/25/programming-nu-on-github">
+Programming Nu on GitHub</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">April 2013</li>
+
+<li>
+<a href="/posts/2013/04/14/Nu-2.1.0">
+Nu-2.1.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">September 2011</li>
+
+<li>
+<a href="/posts/2011/09/02/Nu-2.0.1">
+Nu-2.0.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">August 2011</li>
+
+<li>
+<a href="/posts/2011/08/25/Nu-2.0.0">
+Nu-2.0.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2009</li>
+
+<li>
+<a href="/posts/2009/12/09/stability">
+Nu Seems Stable (by Jason Grossman)</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2009</li>
+
+<li>
+<a href="/posts/2009/11/22/vi">
+vi tips for Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2009/11/17/Nu-0.4.0">
+Nu-0.4.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">January 2009</li>
+
+<li>
+<a href="/posts/2009/01/02/macros">
+Macros</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2008</li>
+
+<li>
+<a href="/posts/2008/12/03/Nu-0.3.3">
+Nu-0.3.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">June 2008</li>
+
+<li>
+<a href="/posts/2008/06/08/Nu-0.3.2">
+Nu-0.3.2</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">May 2008</li>
+
+<li>
+<a href="/posts/2008/05/23/cocoa-programming-with-nu">
+Cocoa Programming with Nu</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">March 2008</li>
+
+<li>
+<a href="/posts/2008/03/24/Nu-0.3.1">
+Nu-0.3.1</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/21/announcing-nu">
+Announcing Nu: The Video</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/18/nu-on-github">
+Nu on github</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/14/new-platforms">
+Linux and the iPhone</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/12/new-license">
+Apache License, v. 2.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">February 2008</li>
+
+<li>
+<a href="/posts/2008/02/13/Nu-0.3.0">
+Nu-0.3.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2007</li>
+
+<li>
+<a href="/posts/2007/12/12/nupagepacker">
+NuPagePacker</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/12/Nu-0.2.4">
+Nu-0.2.4</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/07/Nu-0.2.3">
+Nu-0.2.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2007</li>
+
+<li>
+<a href="/posts/2007/11/26/Nu-0.2.2">
+Nu-0.2.2</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/25/a-delicious-nu-screencast">
+A Delicious Nu Screencast</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/12/Nu-0.2.1">
+Nu-0.2.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">October 2007</li>
+
+<li>
+<a href="/posts/2007/10/17/new-literal-forms-in-nu">
+New Literal Forms in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/escape-sequences-in-nu-strings">
+Escape Sequences in Nu Strings</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/closures-in-nu">
+Closures in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/Nu-0.2.0">
+Nu-0.2.0</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/11/screen-savers-and-plugins">
+Screen Savers and Plugins</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/10/markdown-in-nu">
+Markdown in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/05/functional-nu">
+Functional Aspects of Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/04/randomapp-with-nibfile">
+New Example: Nib Files</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/01/welcome">
+Welcome</a> 
+</li>                                        
+
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/legal">Legal Details</a></h2>
+</div>
+
+</div> <!-- sidebar -->
+
+
+
+</div><!-- container -->
+</body>	
+</html>

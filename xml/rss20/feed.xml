@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Programming Nu</title>
+    <link>http://programming-nu.github.io/</link>
+    <language>en-us</language>
+    <ttl>40</ttl>
+
+    <description>The Nu Language Website</description>
+    
+      <item>
+        <title>Programming Nu on GitHub</title>
+        <description>
+        	<p>Nu and related projects are 
+now in the <a href="https://github.com/programming-nu">programming-nu</a> organization
+on GitHub.</p>
+        </description>
+        <link>http://programming-nu.github.io/posts/2019/07/25/programming-nu-on-github</link>
+
+        <pubDate>Thu, 25 Jul 2019 17:08:00 PDT</pubDate>
+        <guid isPermaLink="false">
+        programming-nu-on-github
+	    </guid>
+      </item>
+    
+      <item>
+        <title>Nu-2.1.0</title>
+        <description>
+        	<p>Nu now includes built in operators for generating HTML and
+other XML-style markup.  </p>
+
+<p>For usage examples, see the test/test_markup.nu unit tests.</p>
+
+<p>As a simple example, this Nu code:</p>
+
+<pre><code>(puts (&amp;html (&amp;body (&amp;h1 "Hello!")
+                    (&amp;p "This is a test")
+                    (&amp;p "This is a second paragraph"))))
+</code></pre>
+
+<p>produces the following output:</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;This is a test&lt;/p&gt;&lt;p&gt;This is a second paragraph&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre>
+
+<p>You'll note that no line breaks or formatting is included. These can easily be added with xmllint:</p>
+
+<pre><code>%nush sample-markup.nu | xmllint --format -
+&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Hello!&lt;/h1&gt;
+    &lt;p&gt;This is a test&lt;/p&gt;
+    &lt;p&gt;This is a second paragraph&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<p>Also, the Nu source formatter (in beautify.nu) now produces prettier output.</p>
+
+<p>Download Nu <a href="/downloads">here</a>.</p>
+        </description>
+        <link>http://programming-nu.github.io/posts/2013/04/14/Nu-2.1.0</link>
+
+        <pubDate>Sun, 14 Apr 2013 17:08:00 PDT</pubDate>
+        <guid isPermaLink="false">
+        Nu-2.1.0
+	    </guid>
+      </item>
+    
+      <item>
+        <title>Nu-2.0.1</title>
+        <description>
+        	<p>This minor update contains better handling of classes whose init
+methods return something other than self, notably NSXMLDocument.
+It also changes loading of modules to use a single shared parser
+so that assignments made in a loaded file are available in the
+calling context (as they should have been).</p>
+
+<p>This build was made from the "amalgamated" branch. Soon this branch
+will become "master". As with 2.0, this version of Nu is
+exclusively for systems running Mac OS 10.7 or iOS 4.3 and 
+their successors. </p>
+        </description>
+        <link>http://programming-nu.github.io/posts/2011/09/02/Nu-2.0.1</link>
+
+        <pubDate>Fri, 02 Sep 2011 15:08:00 PDT</pubDate>
+        <guid isPermaLink="false">
+        Nu-2.0.1
+	    </guid>
+      </item>
+    
+      <item>
+        <title>Nu-2.0.0</title>
+        <description>
+        	<p>Nu 2.0 is now available through a binary installer. </p>
+
+<p>See the <a href="/downloads">downloads</a> page for this update to Nu.</p>
+
+<p>Nu 2.0 is a simpler, smaller version that uses new
+features in iOS 4.3 and Mac OS 10.7 to eliminate external dependencies
+and a few internal components.</p>
+
+<ul>
+<li>NSRegularExpression replaces PCRE.</li>
+<li>imp_implementationWithBlock() is used to generate method implementations.
+Previously we used libFFI for this on MacOS and a precompiled pool of
+method handlers on iOS. Now this pool is no longer needed.</li>
+<li>The NuSymbolTable is now just an NSMutableDictionary.</li>
+</ul>
+
+<p>To make it easier to add Nu as a drop-in component of iOS and Mac apps,
+the source code has been combined into two files, Nu.h and Nu.m. These
+are currently available in the "amalgamated" branch in the git repository,
+and will likely be the primary source for Nu going forward.</p>
+
+<p>Nu 2.0 is intended for systems running Mac OS 10.7 or iOS 4.3 and 
+their successors. For conciseness and simplicity, support for all 
+other platforms is dropped.</p>
+        </description>
+        <link>http://programming-nu.github.io/posts/2011/08/25/Nu-2.0.0</link>
+
+        <pubDate>Thu, 25 Aug 2011 09:08:00 PDT</pubDate>
+        <guid isPermaLink="false">
+        Nu-2.0.0
+	    </guid>
+      </item>
+    
+      <item>
+        <title>Nu Seems Stable (by Jason Grossman)</title>
+        <description>
+        	<p>I've been nagging Tim to say something about the stability of recent releases of Nu, so he asked me to write this.  </p>
+
+<p>Nu is a new language (no pun intended - see below for the etymology of the name Nu).  It hasn't yet formed the basis of an impressive suite of stable software, and you'd think hard before using it to write anything mission-critical.</p>
+
+<p>Despite that, it is actually rather stable.  Let me say more about why.</p>
+        </description>
+        <link>http://programming-nu.github.io/posts/2009/12/09/stability</link>
+
+        <pubDate>Wed, 09 Dec 2009 00:07:00 PDT</pubDate>
+        <guid isPermaLink="false">
+        stability
+	    </guid>
+      </item>
+    
+      <item>
+        <title>vi tips for Nu</title>
+        <description>
+        	<p>I'm collecting some tips for using the vim code editor with Nu.</p>
+        </description>
+        <link>http://programming-nu.github.io/posts/2009/11/22/vi</link>
+
+        <pubDate>Sun, 22 Nov 2009 00:07:00 PDT</pubDate>
+        <guid isPermaLink="false">
+        vi
+	    </guid>
+      </item>
+    
+      <item>
+        <title>Nu-0.4.0</title>
+        <description>
+        	<p>See the <a href="/downloads">downloads</a> page for this long-overdue update to Nu.</p>
+
+<p>The most visible change in this release is that the <strong>macro</strong> operator 
+has been switched to refer to <strong>macro-1</strong> 
+instead of <strong>macro-0</strong> (the original
+Nu macro facility). That is deprecated but kept for compatibility. </p>
+
+<p>Support for garbage collection is now compiled in by default (Mac OS only).</p>
+
+<p>We've also been making good progress running Nu on Linux-based systems.
+Currently a few small sites (including Tim's blog)
+are running with Nu on Rackspace Cloud Servers. See notes/DEBIANINSTALL in the
+Nu source distribution for details about building for Debian.</p>
+        </description>
+        <link>http://programming-nu.github.io/posts/2009/11/17/Nu-0.4.0</link>
+
+        <pubDate>Tue, 17 Nov 2009 04:07:00 PDT</pubDate>
+        <guid isPermaLink="false">
+        Nu-0.4.0
+	    </guid>
+      </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,696 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Syntax</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta content="37.444542, -122.161050" name="ICBM" />
+<link media="all" href="/stylesheets/nu.css" type ="text/css" rel="stylesheet" />
+</head>
+<body>
+<div id="container">
+<div id="header">
+<div style="float:left; margin-right:10px">
+<img src="/files/recycle-s.png" height="50" alt="recycling symbol" />
+</div>
+<div style="float:left">
+<h1><a href="/">Programming Nu</a></h1>
+<h3><a href="https://github.com/programming-nu">github.com/programming-nu</a></h3>
+</div>
+</div>
+
+
+<div id="content">
+<div class="atomentry">
+	
+
+
+<div class="content" style="margin-bottom:10px">
+<h1>Nu Syntax</h1>
+
+<p>Nu has a very simple syntax.  On the surface, this may seem strict and conservative, but in many important ways it allows Nu to be liberal and permissive.  </p>
+
+<h2>Elements</h2>
+
+<p>The basic elements of Nu are symbols, numbers, strings, characters, regular expressions, and punctuation.</p>
+
+<h3>Symbols</h3>
+
+<p>Symbols are sequences of characters that exclude punctuation and whitespace.  Symbols are used as names for values.  Names may be assigned values using the <strong>set</strong> operator.  </p>
+
+<p>Anything that can be parsed as a number is not a symbol.  Numbers may not be assigned values; by definition, a number is its own value.</p>
+
+<p>Symbols may include the colon character (':'), but only as the last character of the symbol.  A symbol that ends with a colon is called a <strong>label</strong>. A colon forces the parser to end the current symbol and begin scanning something new.  This allows us to write <tt>label:value</tt> pairs without having to include a space between the label and its associated value.  </p>
+
+<h3>Numbers</h3>
+
+<p>Anything that looks like a number is a number.  If a token can be converted to a long with <code>strtol()</code>, it's an integer, and if it can be converted to a double with <code>strtod()</code> then it's a floating point number.  Both integer and floating point values are represented with instances of <strong>NSNumber</strong>.</p>
+
+<h3>Strings</h3>
+
+<p>Strings are represented with instances of <strong>NSString</strong>. They can be defined in two ways and have one special feature.</p>
+
+<h4>Double-quoted strings</h4>
+
+<p>Sequences of characters enclosed in double quotes are treated as strings.   Double-quoted strings must be defined on a single line; these strings may not contain newlines.  These strings also may not contain double quotes.  Here is an example, which also illustrates the use of the <strong>set</strong> operator:</p>
+
+<pre>
+(set author "Isaac Asimov")
+</pre>
+
+<h4>Here strings</h4>
+
+<p>Multiline strings and strings containing double quotes can be created using Nu's "here string" notation.  A here string declaration begins with the three characters "&lt;&lt;-" or "&lt;&lt;+" immediately followed by an identifier that will be used to mark the end of the string.  This identifier ends at a newline, after which follows the definition of the string.  Here is an example.</p>
+
+<pre>
+(set poem <<-END
+On Jupiter's second moon
+Few of the folks are at all well to do
+They work and they sweat
+but they're always in debt
+for their kids all attend Io U.END)
+</pre>
+
+<h4>String Interpolation</h4>
+
+<p>A string can contain embedded Nu code which is replaced with its evaluated results whenever the string itself is evaluated.  Here is an example.</p>
+
+<pre>
+% (set laws "Asimov defined #{(+ 1 1 1)} laws of Robotics")
+% (puts laws)
+Asimov defined 3 laws of Robotics
+</pre>
+
+<h4>Character Escape Sequences</h4>
+
+<p>Escape sequences are supported in both double-quoted and here strings.  Double-quoted strings are escaped by default.  For example, <code>"foo\nbar"</code> is parsed as a seven-character string with a newline in the middle.</p>
+
+<p>Strings that are prefixed with a minus sign (-) explicitly
+disable escaping.  For example, <code>-"foo\nbar"</code> is parsed as an eight character string with a slash and 'n' in the middle.
+Strings that are prefixed with a plus sign (+) explicitly
+enable escaping.  For example, <code>+"foo\nbar"</code> is parsed as a seven-character string with a newline in the middle.</p>
+
+<p>Here strings that begin with the "&lt;&lt;-" notation explicitly
+disable escaping. The following example shows an unescaped
+string:</p>
+
+<pre>
+(set x <<-END
+foo\nbarEND)
+</pre>
+
+<p>Here strings that begin with the "&lt;&lt;+" notation explicitly
+enable escaping.  The following example shows an escaped
+string:</p>
+
+<pre>
+(set x <<+END
+foo\nbarEND)
+</pre>
+
+<p>There is no ambiguous form for here strings.</p>
+
+<p>These escape sequences are supported:</p>
+
+<table>
+<tr><td> \n </td><td> newline (0x0a) </td></tr>
+<tr><td> \r </td><td> carriage return (0x0d) </td></tr>
+<tr><td> \f </td><td> formfeed (0x0c) </td></tr>
+<tr><td> \b </td><td> backspace (0x08) </td></tr>
+<tr><td> \a </td><td> bell (0x07) </td></tr>
+<tr><td> \e </td><td> escape (0x1b) </td></tr>
+<tr><td> \s </td><td> space (0x20) </td></tr>
+<tr><td> \nnn </td><td> octal byte </td></tr>
+<tr><td> \xnn </td><td> hexadecimal byte </td></tr>
+<tr><td> \unnnn </td><td> unicode character (16 bits) </td></tr>
+<tr><td> \x </td><td> character x </td></tr>
+</table>
+
+<h3>Character Literals</h3>
+
+<p>Character literals are single characters or escape sequences
+enclosed in pairs of single quotes (').  The same escape
+sequences are supported for character literals and strings.
+Internally, a character literal is represented by an NSNumber
+with the appropriate unicode value.  This is the same value
+and type that is returned by the NSString characterAtIndex:
+method.</p>
+
+<h3>Regular Expression Literals</h3>
+
+<p>Regular expressions may be specified with the following form:</p>
+
+<pre>
+/regex/options
+</pre>
+
+<p>Here "regex" is a regular expression and "options" is a string of lower-case alphabetic characters.</p>
+
+<p>The available options correspond to the options available for the NuRegex class:</p>
+
+<table>
+<tr><td>  i  </td><td> case insensitive comparison </td></tr>
+<tr><td>  s  </td><td> dot metacharacter also matches newlines </td></tr>
+<tr><td>  x  </td><td> allow whitespaces and comments in pattern </td></tr>
+<tr><td>  l  </td><td> lazy quantifiers become greedy and vice versa </td></tr>
+<tr><td>  m  </td><td> caret and dollar anchors match at newlines </td></tr>
+</table>
+
+<p>For example, <code>/^f(o+)$/i</code> matches strings "fo", "FOO",
+and "fooooOOOOO".  </p>
+
+<p>To include forward slashes in regular expressions, prefix each forward slash with a backslash.</p>
+
+<h3>Punctuation (Special Characters)</h3>
+
+<p>A small number of characters are reserved for punctuation.</p>
+
+<table width="100%"  style="background:#eee">
+<tr><th align="left" width="30%">character(s)</th><th align="left">usage</th></tr>
+<tr><td>parentheses</td><td>denote lists</td></tr>
+<tr><td>single quotes</td><td>quote objects, preventing evaluation</td></tr>
+<tr><td>double quotes</td><td>wrap strings</td></tr>
+<tr><td>semicolons and<br/>hash characters</td><td>begin comments</td></tr>
+</table> 
+
+<h3>Comments</h3>
+
+<p>Comments begin with a semicolon or hash character and span a single line.</p>
+
+<pre>
+; This is a comment
+# This is a comment
+</pre> 
+</div>
+
+
+<div class="extended">
+<h2>Expressions</h2>
+
+<p>Expressions are the syntactic building blocks of Nu.  Expressions are written and represented internally as lists.  Expressions are sequences of symbols, numbers, and strings enclosed in parentheses.  Expressions frequently also contain other expressions.</p>
+
+<pre>
+(a first level expression may contain
+   (a second level expression that contains
+       (a third level expression
+          (and this can continue arbitrarily))))
+</pre>
+
+<h3>Operators</h3>
+
+<p>When an expression is evaluated, the first element of the expression is examined and evaluated.  Usually that first element is a symbol, and often when that symbol is evaluated, it corresponds to an operator.  When this occurs, the operator is evaluated with the rest of the expression as its arguments.  </p>
+
+<p>In general, an operator may or may not evaluate its arguments and sometimes may evaluate its arguments multiple times.  This allows Nu to implement common control structures such as <strong>while</strong>
+and <strong>if</strong> as operators.  </p>
+
+<p>For a special class of operators, called functions, all of the arguments are evaluated before the function itself is evaluated.  The function is then evaluated with the evaluated arguments.  As a result, an expression like <nobr><code>(+ 2 (- 4 2))</code></nobr> 
+becomes 
+<nobr><code>(+ 2 2)</code></nobr> and then <code>4</code>.</p>
+
+<p><p/></p>
+
+<p>Operators can be defined in Nu code using the <strong>function</strong>
+and <strong>do</strong> operators, which both create functions, and the
+<strong>macro</strong> operator, which creates more general operators.  </p>
+
+<h3>Messages</h3>
+
+<p>Everything in Nu is an object, and every object in Nu responds to messages. <br />
+Nu's messaging system is built on Objective-C, and Nu code can send messages to objects whether those messages were written in Nu or Objective-C.  Similarly, Objective-C code can send messages to objects with no regard for their implementation language.  Frequently classes will include methods written in both languages.</p>
+
+<p>The Nu message sending syntax is identical to its function call syntax.  A message send is a list.  The first element of the list is the target of the message and the rest of the list describes the message.  Messages that have no arguments look like this:</p>
+
+<pre>
+(array count)
+</pre>
+
+<p>Messages that have a single argument look like this:</p>
+
+<pre>
+(array objectAtIndex: 1)
+</pre>
+
+<p>Here the second element of the list is a label that is also called the message <strong>selector</strong>.  Immediately following the label is the message's argument.</p>
+
+<p>Messages with multiple arguments look like this:</p>
+
+<pre>
+(array writeToFile:"myfile" atomically:NO)
+</pre>
+
+<p>Here the <strong>writeToFile:</strong>
+and <strong>atomically:</strong> labels together form the message selector
+<strong>writeToFile:atomically:</strong>.
+Each label is followed by an associated argument,
+in this case the string "myfile" and the symbol <strong>NO</strong> which is globally defined to zero.</p>
+
+<p>In Nu, operator calls have a higher precedence than message sends.  But it is still possible to send messages to operators using the <strong>send</strong> operator.
+Here is an example that uses the <strong>send</strong> operator to get the context of a block.</p>
+
+<pre>
+% (set y 32)
+32
+% (set block (do (x) (+ 1 y)))
+(do (x) ((+ 1 y)))
+% (send block context)
+<NSCFDictionary:3211f0>
+% ((send block context) description)
+{
+    y = 32; 
+    ... implementation details...
+}
+</pre>
+
+<h3>Quoted Lists</h3>
+
+<p>Normally, Nu evaluates lists that are defined in Nu source text; these lists represent operator calls and message sends.  But sometimes lists are used to represent data.  In these cases, the <strong>quote</strong> operator can be used to prevent evaluation.</p>
+
+<pre>
+(quote (1 2 3))
+</pre>
+
+<p>As a convenience, the single quote character can be used to equivalently quote objects.</p>
+
+<pre>
+'(1 2 3)
+</pre>
+
+<p><strong>quote</strong> can also be used on objects besides lists; often it is used to refer to a symbol without evaluating it.</p>
+
+<h3>Quasiquote</h3>
+
+<p>The <strong>quasiquote</strong> operator is similar to Nu's <strong>quote</strong> operator,
+except that <strong>quasiquote</strong> allows evaluation of selected subforms within the
+quasiquoted form by using <strong>quasiquote-eval</strong> or 
+<strong>quasiquote-splice</strong>.
+Each of the quasiquote operators has a convenient abbreviation that 
+is commonly used in place of the spelled-out operator name:</p>
+
+<table width="100%">
+<tr><th align="left" width="50%">Operator</th>
+<th align="left" width="50%">Abbreviation</th></tr>
+<tr><td>quasiquote</td><td>`</td></tr>
+<tr><td>quasiquote-eval</td><td>,</td></tr>
+<tr><td>quasiquote-splice</td><td>,@</td></tr>
+</table>
+
+<p>By itself, <strong>quasiquote</strong> works just like <strong>quote</strong>:</p>
+
+<pre>
+% `(a b c)
+(a b c)
+</pre>
+
+<p><strong>quasiquote-eval</strong> can be used to turn on evaluation for
+selected subforms:</p>
+
+<pre>
+% (set a 1)
+1
+% (set b 2)
+2
+
+% ; turn on evaluation for b
+% `(a ,b c)
+(a 2 c)
+</pre>
+
+<p>A more complex evaluation:</p>
+
+<pre>
+% `(x y z ,a ,b ,(+ a b))
+(x y z 1 2 3)
+</pre>
+
+<p><strong>quasiquote-splice</strong> also evaluates its form, but it differs from 
+<strong>quasiquote-eval</strong> in how the result is returned.
+With <strong>quasiquote-splice</strong>, the evaluation must return a list.
+This list is then "spliced" in-line within the surrounding form of the caller
+by inserting the contents of the list (not the list itself) into the caller's
+list:</p>
+
+<pre>
+% ; Using quasiquote-eval:
+% `(1 ,(list 2 3))
+(1 (2 3))
+
+% ; Using quasiquote-splice:
+% `(1 ,@(list 2 3))
+(1 2 3)
+</pre>
+
+<p>Neither <strong>quasiquote-eval</strong> nor <strong>quasiquote-splice</strong>
+can be used outside of a <strong>quasiquote</strong> form.</p>
+
+<pre>
+% (list 1 ,a)
+NuQuasiquoteEvalOutsideQuasiquote: Comma must be inside a backquote
+</pre>
+
+<p>The quasiquote operators are particularly useful when writing 
+<a href="/operators#macros">macros</a>, as the code in the macro body ends up looking 
+much closer to the code that the macro-expansion phase generates.</p>
+</div>
+
+
+</div> <!-- atomentry -->
+</div> <!-- content -->
+<div id="sidebar">
+
+<div class="sidebar-node">
+<h2><a href="/about">About Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="http://groups.google.com/group/programming-nu/topics">Google Group:<br/>Programming Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/downloads">Download Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2>Git Repositories</h2>
+<ul>
+<li><a href="http://github.com/programming-nu/nu">nu</a></li>
+<li><a href="http://github.com/programming-nu/programming-nu">programming-nu</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/documentation">Documentation</a></h2>
+<ul>
+<li><a href="/installing">Installing Nu</a></li>
+<li><a href="/usage">Using Nu</a></li>
+<li><a href="/embedding">Embedding Nu</a></li>
+<li><a href="/reference">Nu Reference</a></li>
+<li><a href="/syntax">- Syntax</a></li>
+<li><a href="/operators">- Operators</a></li>
+<li><a href="/types">- Types</a></li>
+<li><a href="/doc/index.html">- Class Reference</a></li>
+<li><a href="/help">Getting and Providing Help</a></li>
+<li><a href="/debugging">Debugging Nu Programs</a></li>
+<li><a href="/textmate">A Bundle for TextMate Users</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/examples">Examples</a></h2>
+<ul>
+<li><a href="/randomapp">RandomApp</a></li>
+<li><a href="/randomappwithnibfile">RandomAppWithNibFile</a></li>
+<li><a href="/currencyconverter">Currency Converter</a></li>
+<li><a href="/nurocks">NuRocks</a></li>
+<li><a href="/console">Console</a></li>
+<li><a href="/growler">Growler</a></li>
+<li><a href="/benwanu">Benwanu</a></li>
+<li><a href="/screensaver">Screen Saver</a></li>
+<li><a href="/maildemo">MailDemo</a></li>
+<li><a href="/nuanywhere">NuAnywhere</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/tools">Tools</a></h2>
+<ul>
+<li><a href="/nuke">nuke, a make utility</a></li>
+<li><a href="/nubile">nubile, a code formatter</a></li>
+<li><a href="/nutest">nutest, a testing tool</a></li>
+<li><a href="/nudoc">nudoc, a documentation generator</a></li>
+<li><a href="/nutemplate">nutemplate, a templating tool</a></li>
+<li><a href="/nubake">nubake, a code generation tool</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/">Archives</a></h2>
+<ul>
+
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">July 2019</li>
+
+<li>
+<a href="/posts/2019/07/25/programming-nu-on-github">
+Programming Nu on GitHub</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">April 2013</li>
+
+<li>
+<a href="/posts/2013/04/14/Nu-2.1.0">
+Nu-2.1.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">September 2011</li>
+
+<li>
+<a href="/posts/2011/09/02/Nu-2.0.1">
+Nu-2.0.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">August 2011</li>
+
+<li>
+<a href="/posts/2011/08/25/Nu-2.0.0">
+Nu-2.0.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2009</li>
+
+<li>
+<a href="/posts/2009/12/09/stability">
+Nu Seems Stable (by Jason Grossman)</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2009</li>
+
+<li>
+<a href="/posts/2009/11/22/vi">
+vi tips for Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2009/11/17/Nu-0.4.0">
+Nu-0.4.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">January 2009</li>
+
+<li>
+<a href="/posts/2009/01/02/macros">
+Macros</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2008</li>
+
+<li>
+<a href="/posts/2008/12/03/Nu-0.3.3">
+Nu-0.3.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">June 2008</li>
+
+<li>
+<a href="/posts/2008/06/08/Nu-0.3.2">
+Nu-0.3.2</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">May 2008</li>
+
+<li>
+<a href="/posts/2008/05/23/cocoa-programming-with-nu">
+Cocoa Programming with Nu</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">March 2008</li>
+
+<li>
+<a href="/posts/2008/03/24/Nu-0.3.1">
+Nu-0.3.1</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/21/announcing-nu">
+Announcing Nu: The Video</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/18/nu-on-github">
+Nu on github</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/14/new-platforms">
+Linux and the iPhone</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/12/new-license">
+Apache License, v. 2.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">February 2008</li>
+
+<li>
+<a href="/posts/2008/02/13/Nu-0.3.0">
+Nu-0.3.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2007</li>
+
+<li>
+<a href="/posts/2007/12/12/nupagepacker">
+NuPagePacker</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/12/Nu-0.2.4">
+Nu-0.2.4</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/07/Nu-0.2.3">
+Nu-0.2.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2007</li>
+
+<li>
+<a href="/posts/2007/11/26/Nu-0.2.2">
+Nu-0.2.2</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/25/a-delicious-nu-screencast">
+A Delicious Nu Screencast</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/12/Nu-0.2.1">
+Nu-0.2.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">October 2007</li>
+
+<li>
+<a href="/posts/2007/10/17/new-literal-forms-in-nu">
+New Literal Forms in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/escape-sequences-in-nu-strings">
+Escape Sequences in Nu Strings</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/closures-in-nu">
+Closures in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/Nu-0.2.0">
+Nu-0.2.0</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/11/screen-savers-and-plugins">
+Screen Savers and Plugins</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/10/markdown-in-nu">
+Markdown in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/05/functional-nu">
+Functional Aspects of Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/04/randomapp-with-nibfile">
+New Example: Nib Files</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/01/welcome">
+Welcome</a> 
+</li>                                        
+
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/legal">Legal Details</a></h2>
+</div>
+
+</div> <!-- sidebar -->
+
+
+
+</div><!-- container -->
+</body>	
+</html>

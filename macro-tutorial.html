@@ -1,0 +1,676 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Macro Tutorial</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta content="37.444542, -122.161050" name="ICBM" />
+<link media="all" href="/stylesheets/nu.css" type ="text/css" rel="stylesheet" />
+</head>
+<body>
+<div id="container">
+<div id="header">
+<div style="float:left; margin-right:10px">
+<img src="/files/recycle-s.png" height="50" alt="recycling symbol" />
+</div>
+<div style="float:left">
+<h1><a href="/">Programming Nu</a></h1>
+<h3><a href="https://github.com/programming-nu">github.com/programming-nu</a></h3>
+</div>
+</div>
+
+
+<div id="content">
+<div class="atomentry">
+	
+
+
+<div class="content" style="margin-bottom:10px">
+<h1>Tutorial - Writing Nu Macros</h1>
+
+<p>Nu's <strong>macro</strong> facility gives you a lot of power to create your own
+extensions to the core Nu language.  Some extensions 
+reduce the amount of boilerplate code you would otherwise have to 
+write.  Other extensions create new language features that raise the
+level of abstraction in your application, making the code shorter and 
+more expressive.</p>
+
+<h2>Simple macros in Nu</h2>
+
+<p>The simplest type of macros in Nu are "template" macros,
+where the body of the macro looks like a fill-in-the-blanks form.</p>
+
+<p>A simple example of a template macro is an increment
+operator that updates the value of the passed-in argument
+variable by adding 1 to it:</p>
+
+<pre>
+(macro inc! (n)
+    `(set ,n (+ ,n 1)))
+</pre>
+
+<p>It's easy to read the above macro and visualize what code the
+macro is generating:</p>
+
+<pre>
+; macro expansion of "(inc! a)":
+(set a (+ a 1))
+</pre>
+
+<p>In the above example, we use the backquote character 
+(shorthand for the <strong>quasiquote</strong> operator) to generate 
+a <strong>set</strong> statement.</p>
+
+<p>Quasiquote works just like <strong>quote</strong>, except that 
+<strong>quasiquote</strong> allows you to selectively evaluate
+any expresssion inside the quasiquote that starts with
+a comma (shorthand for <strong>quasiquote-eval</strong>).</p>
+
+<p>If we left out the comma in front of the <em>n</em> symbols
+inside the body of our macro, the macro-expansion would 
+just echo the <strong>set</strong> statement as-is, no matter what
+value we passed in for the macro argument <em>n</em>.</p>
+
+<pre>
+; forgetting to evaluate n's:
+(macro bad-inc! (n)
+    `(set n (+ n 1)))
+
+; macro expansion of "(bad-inc! a)":
+(set n (+ n 1))
+</pre>
+
+<p>Note that we don't have to use quasiquoting in order to
+generate a macro body.  We could write a macro that's 
+equivalent to <em>inc!</em> using just normal Nu quoting and
+the <strong>list</strong> operator:</p>
+
+<pre>
+; writing inc! without quasiquoting:
+(macro verbose-inc! (n)
+    (list 'set n (list '+ n '1)))
+
+; macro expansion of "(verbose-inc! a)":
+(set a (+ a 1))
+</pre>
+
+<p>Although the two macro-expansions are equivalent,
+it's easy to see that Nu's quasiquoting features generally
+make macro code shorter, easier to read, and less error-prone
+than building up expression structures using <strong>list</strong>.</p>
+
+<p>The <em>inc!</em> macro example is about the
+simplest class of macro that we can define - we're merely 
+substituting a variable name in the body of the generated code.</p>
+
+<p>There are many useful macros that we can create using
+this simple template substitution pattern.  However, these 
+types of macros don't come close to using the full capabilities 
+of Nu's macro features.</p>
+
+<h2>Doing more with macros</h2>
+
+<p>We're now going to take a look at a different class of macro.
+This macro is an example of building a simple, but powerful
+language feature using the code transformational power of Nu macros.</p>
+
+<h3>let == do</h3>
+
+<p>Let's start off by looking at Nu's <strong>let</strong> operator.
+Here's a short example of using <strong>let</strong>:</p>
+
+<pre>
+% (let ((x 1) (y 2))
+      (+ x y))
+3 
+</pre>
+
+<p>The <strong>let</strong> operator establishes a list of variable bindings and 
+evaluates a series of expressions using those bindings along with
+the rest of the calling context.</p>
+
+<p>We can achieve the same effect of <strong>let</strong> by using an anonymous 
+function (a <strong>do</strong> expression).  In fact, this is essentially 
+how Nu implements <strong>let</strong> in Objective-C.</p>
+
+<p>We can write an equivalent <strong>do</strong> version of our 
+above <strong>let</strong> statement like this:</p>
+
+<pre>
+% ((do (x y)
+      (+ x y)) 1 2)
+3
+</pre>
+
+<p>Now, let's pretend that Nu didn't have a built-in <strong>let</strong> operator.
+We'll write our own version of <strong>let</strong> that will transform a 
+Nu-compliant <strong>let</strong> statement into its 
+equivalent <strong>do</strong> block.</p>
+
+<h3>Sketching out the prototype</h3>
+
+<p>Since we're transforming code and establishing bindings, a macro
+is our best bet.  Our <strong>let</strong> macro is going to take two arguments:</p>
+
+<ol>
+<li>a list of bindings</li>
+<li>a list of expressions to evaluate</li>
+</ol>
+
+<p>Here's our first version:</p>
+
+<pre>
+(macro our-let (bindings *body)
+    ;; Needs more work here)
+</pre>
+
+<p>It doesn't do anything yet except establish an argument list
+which is compliant with Nu's built-in <strong>let</strong> operator.</p>
+
+<p>The <em>bindings</em> argument is going to hold the list of 
+variable/value pairs:</p>
+
+<pre>
+;; bindings will hold a list like this:
+((x 1) (y 2))
+</pre>
+
+<p>The <em>*body</em> argument will contain a list of the expressions
+to execute in the body of the <strong>let</strong> block.</p>
+
+<p>To get started writing the macro, we can sketch out what 
+the structure of generated code should look like:</p>
+
+<pre>
+(macro our-let (bindings *body)
+    `((do ([generate variable names list])
+            [insert passed-in body of code])
+        [generate variable values])
+</pre>
+
+<p>We need to separate the bindings list into a list of binding 
+variable names and a list of binding variable values.
+The list of binding variable names will become the generated 
+argument list for our <strong>do</strong> block.
+The list of binding variable values will become the values 
+we pass to the <strong>do</strong> block.</p>
+
+<h3>Building the pieces</h3>
+
+<p>We'll do some interactive work in <strong>nush</strong> to get some
+pieces of our macro working.</p>
+
+<p>First, we can get the list of binding variable names by 
+selecting the first element of each binding in the list:</p>
+
+<pre>
+;; set our test values
+% (set testbindings '((x 1) (y 2)))
+((x 1) (y 2))
+
+% (testbindings map: (do (x) (first x)))
+(x y)
+</pre>
+
+<p>Similarly, we can get the list of binding variable values,
+which are the second element of each binding in the list:</p>
+
+<pre>
+% (testbindings map: (do (x) (second x)))
+(1 2)
+</pre>
+
+<h3>Putting it all together</h3>
+
+<p>Now we're ready to write our macro using the pieces we
+prototyped above:</p>
+
+<pre>
+(macro-1 our-let (bindings *body)
+    `((do ,(bindings map: (do (x) (first x)))
+            ,@*body)
+        ,@(bindings map: (do (x) (second x)))))
+</pre>
+
+<p>We start the body of the macro with a quasiquote, so
+any form that's not evaluated by either "," or ",@"
+will be copied as-is to the generated code at 
+macro-expansion time.</p>
+
+<p>We leave the first two parentheses and the "do" 
+keyword unevaluated, since it will become a literal 
+part of the final generated code.</p>
+
+<p>The first evaluated expression within the quasiquote 
+is the code we built in nush that parses out the variable 
+names from the list of bindings.  This will become the 
+argument list for our do block definition.  Since the 
+<strong>map:</strong> function returns its results in a list, we'll 
+have exactly what we need to generate the argument list.</p>
+
+<p>The ",@*body" expression splices the statements that 
+will be the body of code that the our-let call evaluates.
+Note that we used ",@" and not just ",".  ",@" splices 
+the list of statements into the calling expression.
+If we had used "," instead, we would have ended up with 
+an extra set of parentheses surrounding the contents 
+of <em>*body</em>.</p>
+
+<p>The closing parenthesis after 
+",@*body" closes the <strong>do</strong> expression.</p>
+
+<p>The final evaluated expression extracts the binding 
+variable values from the <em>bindings</em> parameter.  Again, 
+",@" is used to splice the values into the calling 
+expression to avoid erroneously wrapping the arguments
+to the <strong>do</strong> expression in a list.</p>
+
+<h3>Trying it out</h3>
+
+<p>It's a good idea to see what code is being generated
+at macro-expansion time.  The <strong>macrox</strong> operator
+runs the macro-expansion phase and returns the 
+macro-expanded code.</p>
+
+<pre>
+% (macrox
+    (our-let ((x 1) (y 2))
+        (+ x y)))
+
+((do (x y) (+ x y)) 1 2)
+</pre>
+
+<p>That looks just like what we want.  Let's try the
+example we used at the beginning of the tutorial:</p>
+
+<pre>
+% (our-let ((x 1) (y 2))
+    (+ x y))
+3
+</pre>
+
+<p>That looks good too.</p>
+
+<h3>It takes time</h3>
+
+<p>Writing good macros takes a bit of practice.  When
+writing a new macro, it often helps to start off by 
+writing down an example of how the macro would be called, 
+and then writing down the code that you would want generated
+from that example macro call.  We did that in this tutorial,
+and it broke the body of the macro down into a few relatively
+simple pieces.</p>
+
+<p>Also, use <strong>macrox</strong> early and often.  Seeing what code 
+your macro is generating is a huge help during development.
+And remember that since <strong>macrox</strong> isn't actually evaluating
+the generated code, you can use it even when you are generating
+partial code that wouldn't otherwise be valid to evaluate.</p>
+
+<h3>For more information</h3>
+
+<p>If you have the Nu source code distribution, there are several 
+examples of macro usage in the <em>test</em> subdirectory.  Look in the
+following files:</p>
+
+<ul>
+<li>test/test_macrox.nu</li>
+<li>test/test_onlisp.nu</li>
+</ul>
+
+<p>Also, Paul Graham's excellent book "On Lisp" devotes several chapters 
+to discussing how to write good macros.  Nu's macro facility 
+has most of the features of Lisp's <strong>defmacro</strong> operator,
+so many of the examples will translate with minor changes.
+In fact, the our-let macro developed here was based on an example
+in chapter 11 of Graham's book.  Graham's book is available
+online in PDF format <a href="http://www.paulgraham.com/onlisptext.html">here</a>.</p> 
+</div>
+
+
+<div class="extended">
+
+</div>
+
+
+</div> <!-- atomentry -->
+</div> <!-- content -->
+<div id="sidebar">
+
+<div class="sidebar-node">
+<h2><a href="/about">About Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="http://groups.google.com/group/programming-nu/topics">Google Group:<br/>Programming Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/downloads">Download Nu</a></h2>
+</div>
+
+<div class="sidebar-node">
+<h2>Git Repositories</h2>
+<ul>
+<li><a href="http://github.com/programming-nu/nu">nu</a></li>
+<li><a href="http://github.com/programming-nu/programming-nu">programming-nu</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/documentation">Documentation</a></h2>
+<ul>
+<li><a href="/installing">Installing Nu</a></li>
+<li><a href="/usage">Using Nu</a></li>
+<li><a href="/embedding">Embedding Nu</a></li>
+<li><a href="/reference">Nu Reference</a></li>
+<li><a href="/syntax">- Syntax</a></li>
+<li><a href="/operators">- Operators</a></li>
+<li><a href="/types">- Types</a></li>
+<li><a href="/doc/index.html">- Class Reference</a></li>
+<li><a href="/help">Getting and Providing Help</a></li>
+<li><a href="/debugging">Debugging Nu Programs</a></li>
+<li><a href="/textmate">A Bundle for TextMate Users</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/examples">Examples</a></h2>
+<ul>
+<li><a href="/randomapp">RandomApp</a></li>
+<li><a href="/randomappwithnibfile">RandomAppWithNibFile</a></li>
+<li><a href="/currencyconverter">Currency Converter</a></li>
+<li><a href="/nurocks">NuRocks</a></li>
+<li><a href="/console">Console</a></li>
+<li><a href="/growler">Growler</a></li>
+<li><a href="/benwanu">Benwanu</a></li>
+<li><a href="/screensaver">Screen Saver</a></li>
+<li><a href="/maildemo">MailDemo</a></li>
+<li><a href="/nuanywhere">NuAnywhere</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/tools">Tools</a></h2>
+<ul>
+<li><a href="/nuke">nuke, a make utility</a></li>
+<li><a href="/nubile">nubile, a code formatter</a></li>
+<li><a href="/nutest">nutest, a testing tool</a></li>
+<li><a href="/nudoc">nudoc, a documentation generator</a></li>
+<li><a href="/nutemplate">nutemplate, a templating tool</a></li>
+<li><a href="/nubake">nubake, a code generation tool</a></li>
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/">Archives</a></h2>
+<ul>
+
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">July 2019</li>
+
+<li>
+<a href="/posts/2019/07/25/programming-nu-on-github">
+Programming Nu on GitHub</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">April 2013</li>
+
+<li>
+<a href="/posts/2013/04/14/Nu-2.1.0">
+Nu-2.1.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">September 2011</li>
+
+<li>
+<a href="/posts/2011/09/02/Nu-2.0.1">
+Nu-2.0.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">August 2011</li>
+
+<li>
+<a href="/posts/2011/08/25/Nu-2.0.0">
+Nu-2.0.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2009</li>
+
+<li>
+<a href="/posts/2009/12/09/stability">
+Nu Seems Stable (by Jason Grossman)</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2009</li>
+
+<li>
+<a href="/posts/2009/11/22/vi">
+vi tips for Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2009/11/17/Nu-0.4.0">
+Nu-0.4.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">January 2009</li>
+
+<li>
+<a href="/posts/2009/01/02/macros">
+Macros</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2008</li>
+
+<li>
+<a href="/posts/2008/12/03/Nu-0.3.3">
+Nu-0.3.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">June 2008</li>
+
+<li>
+<a href="/posts/2008/06/08/Nu-0.3.2">
+Nu-0.3.2</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">May 2008</li>
+
+<li>
+<a href="/posts/2008/05/23/cocoa-programming-with-nu">
+Cocoa Programming with Nu</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">March 2008</li>
+
+<li>
+<a href="/posts/2008/03/24/Nu-0.3.1">
+Nu-0.3.1</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/21/announcing-nu">
+Announcing Nu: The Video</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/18/nu-on-github">
+Nu on github</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/14/new-platforms">
+Linux and the iPhone</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2008/03/12/new-license">
+Apache License, v. 2.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">February 2008</li>
+
+<li>
+<a href="/posts/2008/02/13/Nu-0.3.0">
+Nu-0.3.0</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">December 2007</li>
+
+<li>
+<a href="/posts/2007/12/12/nupagepacker">
+NuPagePacker</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/12/Nu-0.2.4">
+Nu-0.2.4</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/12/07/Nu-0.2.3">
+Nu-0.2.3</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">November 2007</li>
+
+<li>
+<a href="/posts/2007/11/26/Nu-0.2.2">
+Nu-0.2.2</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/25/a-delicious-nu-screencast">
+A Delicious Nu Screencast</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/11/12/Nu-0.2.1">
+Nu-0.2.1</a> 
+</li>                                        
+
+
+
+<li style="font-weight:bold; font-size:smaller; background:#eee; line-height:100%">October 2007</li>
+
+<li>
+<a href="/posts/2007/10/17/new-literal-forms-in-nu">
+New Literal Forms in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/escape-sequences-in-nu-strings">
+Escape Sequences in Nu Strings</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/closures-in-nu">
+Closures in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/17/Nu-0.2.0">
+Nu-0.2.0</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/11/screen-savers-and-plugins">
+Screen Savers and Plugins</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/10/markdown-in-nu">
+Markdown in Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/05/functional-nu">
+Functional Aspects of Nu</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/04/randomapp-with-nibfile">
+New Example: Nib Files</a> 
+</li>                                        
+
+
+
+<li>
+<a href="/posts/2007/10/01/welcome">
+Welcome</a> 
+</li>                                        
+
+</ul>
+</div>
+
+<div class="sidebar-node">
+<h2><a href="/legal">Legal Details</a></h2>
+</div>
+
+</div> <!-- sidebar -->
+
+
+
+</div><!-- container -->
+</body>	
+</html>
